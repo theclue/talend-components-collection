@@ -14,6 +14,7 @@
     <addMavenDescription>true</addMavenDescription>
     <useSnapshot>true</useSnapshot>
     <componentsFolder>${user.home}/talend_components</componentsFolder>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
   <repositories>
   		<repository>
