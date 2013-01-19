@@ -1,0 +1,149 @@
+<%@ jet 
+	imports="
+		org.talend.core.model.process.INode 
+		org.talend.core.model.process.ElementParameterParser 
+		org.talend.core.model.metadata.IMetadataTable 
+		org.talend.core.model.metadata.IMetadataColumn 
+		org.talend.core.model.process.IConnection
+		org.talend.core.model.process.IConnectionCategory
+		org.talend.designer.codegen.config.CodeGeneratorArgument
+		org.talend.core.model.metadata.types.JavaTypesManager
+		org.talend.core.model.metadata.types.JavaType
+		org.talend.core.model.utils.NodeUtil
+		java.util.List 
+    	java.util.Map
+    	java.util.ArrayList
+    	java.util.HashMap
+	" 
+%>
+<% 
+    CodeGeneratorArgument codeGenArgument = (CodeGeneratorArgument) argument;
+    INode node = (INode)codeGenArgument.getArgument();
+    String cid = node.getUniqueName();
+    
+    /********************
+     * DEFINES          *
+     ********************/
+
+     List<IConnection> outMainConns = new ArrayList<IConnection>(); // outgoing main connections
+     List<String> outrowName = new ArrayList(); // outgoing connections names
+
+     List<IMetadataColumn> outMainColumns = null;
+
+    // Parameters
+    String jira_host = ElementParameterParser.getValue(node,"__JIRA_HOST__");
+    String jira_user = ElementParameterParser.getValue(node,"__JIRA_USER__");
+    String jira_pass = ElementParameterParser.getValue(node,"__JIRA_PASS__");
+
+	List<Map<String, String>> conditions = (List<Map<String,String>>)ElementParameterParser.getObjectValue(node,  "__CONDITIONS__");
+
+	// Advanced parameters
+    boolean exclusion_mode = "true".equals(ElementParameterParser.getValue(node,"__EXCLUSION_MODE__"));
+    List<Map<String, String>> projectList = (List<Map<String,String>>)ElementParameterParser.getObjectValue(node,  "__PROJECT_LIST__");	
+
+    // Decoding outgoing connections
+    for(IConnection conn: NodeUtil.getOutgoingConnections(node, IConnectionCategory.DATA)){
+    	if(!conn.isActivate()) continue;
+    	IConnection cc = NodeUtil.getRealConnectionTypeBased(conn);
+      outrowName.add(cc.getName());
+    	outMainConns.add(cc);
+    }
+  
+  // Take the column list from the first connection and convert to an accessible collection
+  outMainColumns = outMainConns.get(0).getMetadataTable().getListColumns();
+  
+  Map<String,IMetadataColumn> columnsMap = new HashMap<String,IMetadataColumn>();
+  for (IMetadataColumn col : outMainColumns) columnsMap.put(col.getLabel(),col);
+
+%>
+/****************
+ * SANITY CHECK *
+ ****************/
+<%
+	for(Map<String, String> data : conditions){
+		stringBuffer.append(NL);
+		stringBuffer.append("/* column: " + data.get("SCHEMA_COLUMN") + " */ ");
+		stringBuffer.append(NL);
+		stringBuffer.append("if(!");
+    	stringBuffer.append("org.gabrielebaldassarre.tcomponent.bridge.TalendType.getInstanceFromTalendId(\"" +  columnsMap.get(data.get("SCHEMA_COLUMN")).getTalendType() + "\")");
+		stringBuffer.append(".equals(org.gabrielebaldassarre.jira.projects.JiraProjectField." + data.get("OPERATION") + ".getTalendType())");
+		stringBuffer.append(NL);
+		stringBuffer.append(")");
+		stringBuffer.append(" throw new IllegalArgumentException(\"wrong type in column \'" + data.get("SCHEMA_COLUMN") + "\' (found " + columnsMap.get(data.get("SCHEMA_COLUMN")).getTalendType() + ", expected \" +  org.gabrielebaldassarre.jira.projects.JiraProjectField." + data.get("OPERATION") + ".getTalendType().getId()  + \")\");");
+
+	}
+%>
+/**
+ * Jira Rest initialization
+ */
+ 
+final com.atlassian.jira.rest.client.internal.jersey.JerseyJiraRestClientFactory factory_<%=cid%> = new com.atlassian.jira.rest.client.internal.jersey.JerseyJiraRestClientFactory();
+final com.atlassian.jira.rest.client.JiraRestClient jiraRestClient_<%=cid%> = factory_<%=cid%>.createWithBasicHttpAuthentication(new java.net.URI(<%= jira_host %>), <%= jira_user %>, <%= jira_pass %>);
+final com.atlassian.jira.rest.client.NullProgressMonitor jiraProgressMonitor_<%=cid%> = new com.atlassian.jira.rest.client.NullProgressMonitor();
+        
+/**
+ * TOS-bridge data structures
+ * @see http://gabrielebaldassarre.com
+ */
+ 
+// data model initialization      
+org.gabrielebaldassarre.tcomponent.bridge.TalendFlowController tcontroller_<%=cid%> = org.gabrielebaldassarre.tcomponent.bridge.TalendFlowController.getInstance();
+org.gabrielebaldassarre.tcomponent.bridge.TalendFlowModel tmodel_<%=cid%> = tcontroller_<%=cid%>.getModel(new org.gabrielebaldassarre.tcomponent.bridge.TalendContext(globalMap));
+
+// flows and rows factories interface
+org.gabrielebaldassarre.tcomponent.bridge.TalendFlowFactory tablefactory_<%=cid%> = tmodel_<%=cid%>.getFlowFactory();
+org.gabrielebaldassarre.tcomponent.bridge.TalendRowFactory rowFactory_<%=cid%> = tmodel_<%=cid%>.getRowFactory();
+        
+// init needed data flows
+org.gabrielebaldassarre.tcomponent.bridge.TalendFlow projects_<%=cid%> = tablefactory_<%=cid%>.newFlow("JIRA Projects for <%= cid %>", null, true);
+org.gabrielebaldassarre.tcomponent.bridge.TalendFlow projectDetails_<%=cid%> = tablefactory_<%=cid%>.newFlow("JIRA Projects Details for <%= cid %>", 0, false);
+
+// Prepare columns for basic projects data flow
+projects_<%=cid%>.addColumn("project_uri", org.gabrielebaldassarre.jira.projects.JiraProjectField.SELF_URI.getTalendType(), null, true);
+
+// Prepare columns for project details data flow
+<%
+	for(Map<String, String> data : conditions){
+		stringBuffer.append(NL);
+		stringBuffer.append(" projectDetails_" + cid + ".addColumn(\"" + data.get("SCHEMA_COLUMN") + "\", org.gabrielebaldassarre.jira.projects.JiraProjectField." + data.get("OPERATION") + ".getTalendType());");
+ 		stringBuffer.append(NL);
+	}
+%>
+
+// Prepare visitors
+org.gabrielebaldassarre.jira.projects.TalendFlowBasicProjectBehaviour pCrawl_<%=cid%> = new org.gabrielebaldassarre.jira.projects.TalendFlowBasicProjectBehaviour(jiraRestClient_<%=cid%>.getProjectClient(), jiraProgressMonitor_<%=cid%>);
+org.gabrielebaldassarre.jira.projects.TalendRowProjectDetailBehaviour detCrawl_<%=cid%> = new org.gabrielebaldassarre.jira.projects.TalendRowProjectDetailBehaviour(jiraRestClient_<%=cid%>.getProjectClient(), jiraProgressMonitor_<%=cid%>); 
+
+        
+pCrawl_<%=cid%>.setKey(projects_<%=cid%>.getColumn("project_uri"));
+pCrawl_<%=cid%>.setFilterExclusionMode(<%=exclusion_mode%>);
+
+// Project filtering conditions
+<%
+	for(Map<String, String> project : projectList){
+		stringBuffer.append(NL);
+		stringBuffer.append("pCrawl_" + cid + ".addFilterCondition(" + project.get("PROJECT") + ");");
+ 		stringBuffer.append(NL);
+	}
+%>
+
+// Link project detail columns to proper operations
+<%
+	for(Map<String, String> data : conditions){
+		stringBuffer.append(NL);
+		stringBuffer.append("/* column: " + data.get("SCHEMA_COLUMN") + " operation: " + data.get("OPERATION") + " */ ");
+		stringBuffer.append(NL);
+		stringBuffer.append(" detCrawl_" + cid + ".setColumnLink(projectDetails_" + cid + ".getColumn(\"" + data.get("SCHEMA_COLUMN") + "\"), org.gabrielebaldassarre.jira.projects.JiraProjectField." + data.get("OPERATION") + ");");
+ 		stringBuffer.append(NL);
+	}
+%>
+
+/**
+ * Data retrieval from JIRA
+ */
+// Project list
+pCrawl_<%=cid%>.visit(projects_<%=cid%>);
+
+int nb_line_<%=cid%>=0;
+ 
+for(com.atlassian.jira.rest.client.domain.BasicProject project_<%=cid%> : pCrawl_<%=cid%>){ 
