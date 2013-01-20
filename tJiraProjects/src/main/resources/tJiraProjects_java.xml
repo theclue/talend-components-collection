@@ -24,6 +24,9 @@
 	<PARAMETERS>
 		<PARAMETER NAME="SCHEMA" FIELD="SCHEMA_TYPE" REQUIRED="true"
 			NUM_ROW="1" SHOW="true">
+			<TABLE>
+          <COLUMN NAME="projectKey" TYPE="id_String" LENGTH="128"/>
+      </TABLE>
 		</PARAMETER>
 		<PARAMETER NAME="JIRA_HOST" FIELD="TEXT" NUM_ROW="2" REQUIRED="true">
 			<DEFAULT>"https://localhost.localdomain:9001"</DEFAULT>
