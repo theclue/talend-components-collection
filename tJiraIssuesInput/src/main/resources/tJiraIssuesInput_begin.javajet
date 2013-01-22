@@ -1,0 +1,142 @@
+<%@ jet 
+	imports="
+		org.talend.core.model.process.INode 
+		org.talend.core.model.process.ElementParameterParser 
+		org.talend.core.model.metadata.IMetadataColumn 
+		org.talend.core.model.process.IConnection
+		org.talend.core.model.process.IConnectionCategory
+		org.talend.designer.codegen.config.CodeGeneratorArgument
+		org.talend.core.model.utils.NodeUtil
+		java.util.List 
+    	java.util.Map
+    	java.util.ArrayList
+    	java.util.HashMap
+	" 
+%>
+<% 
+    CodeGeneratorArgument codeGenArgument = (CodeGeneratorArgument) argument;
+    INode node = (INode)codeGenArgument.getArgument();
+    String cid = node.getUniqueName();
+    
+    /********************
+     * DEFINES          *
+     ********************/
+
+     List<IConnection> outMainConns = new ArrayList<IConnection>(); // outgoing main connections
+     List<String> outrowName = new ArrayList<String>(); // outgoing connections names
+
+     List<IMetadataColumn> outMainColumns = null;
+
+    // Parameters
+    String jira_host = ElementParameterParser.getValue(node,"__JIRA_HOST__");
+    String jira_user = ElementParameterParser.getValue(node,"__JIRA_USER__");
+    String jira_pass = ElementParameterParser.getValue(node,"__JIRA_PASS__");
+    
+    String jql_query = ElementParameterParser.getValue(node,"__JQL_QUERY__");
+
+	List<Map<String, String>> conditions = (List<Map<String,String>>)ElementParameterParser.getObjectValue(node,  "__CONDITIONS__");
+
+	// Advanced parameters
+    
+    // Decoding outgoing connections
+    for(IConnection conn: NodeUtil.getOutgoingConnections(node, IConnectionCategory.DATA)){
+    	if(!conn.isActivate()) continue;
+    	IConnection cc = NodeUtil.getRealConnectionTypeBased(conn);
+      outrowName.add(cc.getName());
+    	outMainConns.add(cc);
+    }
+    
+  // Skip if component is disconnected
+  if(outMainConns.size()  == 0) return "";  
+  
+  // Take the column list from the first connection and convert to an accessible collection
+  if(outMainConns.size() > 0){
+  	outMainColumns = outMainConns.get(0).getMetadataTable().getListColumns();
+  }
+  
+  Map<String,IMetadataColumn> columnsMap = new HashMap<String,IMetadataColumn>();
+  for (IMetadataColumn col : outMainColumns) columnsMap.put(col.getLabel(),col);
+
+%>
+/****************
+ * SANITY CHECK *
+ ****************/
+<%
+	for(Map<String, String> data : conditions){
+		stringBuffer.append(NL);
+		stringBuffer.append("/* column: " + data.get("SCHEMA_COLUMN") + " */ ");
+		stringBuffer.append(NL);
+		stringBuffer.append("if(!");
+    	stringBuffer.append("org.gabrielebaldassarre.tcomponent.bridge.TalendType.getInstanceFromTalendId(\"" +  columnsMap.get(data.get("SCHEMA_COLUMN")).getTalendType() + "\")");
+		stringBuffer.append(".equals(org.gabrielebaldassarre.jira.issues.JiraIssueField." + data.get("OPERATION") + ".getTalendType())");
+		stringBuffer.append(NL);
+		stringBuffer.append(")");
+		stringBuffer.append(" throw new IllegalArgumentException(\"wrong type in column \'" + data.get("SCHEMA_COLUMN") + "\' (found " + columnsMap.get(data.get("SCHEMA_COLUMN")).getTalendType() + ", expected \" +  org.gabrielebaldassarre.jira.issues.JiraIssueField." + data.get("OPERATION") + ".getTalendType().getId()  + \")\");");
+
+	}
+%>
+/**
+ * Jira Rest initialization
+ */
+ 
+final com.atlassian.jira.rest.client.internal.jersey.JerseyJiraRestClientFactory factory_<%=cid%> = new com.atlassian.jira.rest.client.internal.jersey.JerseyJiraRestClientFactory();
+final com.atlassian.jira.rest.client.JiraRestClient jiraRestClient_<%=cid%> = factory_<%=cid%>.createWithBasicHttpAuthentication(new java.net.URI(<%= jira_host %>), <%= jira_user %>, <%= jira_pass %>);
+final com.atlassian.jira.rest.client.NullProgressMonitor jiraProgressMonitor_<%=cid%> = new com.atlassian.jira.rest.client.NullProgressMonitor();
+        
+/**
+ * TOS-bridge data structures
+ * @see http://gabrielebaldassarre.com
+ */
+ 
+// data model initialization      
+org.gabrielebaldassarre.tcomponent.bridge.TalendFlowController tcontroller_<%=cid%> = org.gabrielebaldassarre.tcomponent.bridge.TalendFlowController.getInstance();
+org.gabrielebaldassarre.tcomponent.bridge.TalendFlowModel tmodel_<%=cid%> = tcontroller_<%=cid%>.getModel(new org.gabrielebaldassarre.tcomponent.bridge.TalendContext(globalMap));
+
+// flows and rows factories interface
+org.gabrielebaldassarre.tcomponent.bridge.TalendFlowFactory tablefactory_<%=cid%> = tmodel_<%=cid%>.getFlowFactory();
+org.gabrielebaldassarre.tcomponent.bridge.TalendRowFactory rowFactory_<%=cid%> = tmodel_<%=cid%>.getRowFactory();
+        
+// init needed data flows
+org.gabrielebaldassarre.tcomponent.bridge.TalendFlow issues_<%=cid%> = tablefactory_<%=cid%>.newFlow("JIRA Issues List for <%= cid %>", null, true);
+org.gabrielebaldassarre.tcomponent.bridge.TalendFlow issuesDetails_<%=cid%> = tablefactory_<%=cid%>.newFlow("JIRA Issues Details for <%= cid %>", 0, false);
+
+// Prepare columns for issue list data flow
+issues_<%=cid%>.addColumn("issue", org.gabrielebaldassarre.jira.issues.JiraIssueField.SELF_URI.getTalendType(), null, true);
+
+// Prepare columns for issues details data flow
+<%
+	for(Map<String, String> data : conditions){
+		stringBuffer.append(NL);
+		stringBuffer.append(" issuesDetails_" + cid + ".addColumn(\"" + data.get("SCHEMA_COLUMN") + "\", org.gabrielebaldassarre.jira.issues.JiraIssueField." + data.get("OPERATION") + ".getTalendType());");
+ 		stringBuffer.append(NL);
+	}
+%>
+
+// Prepare visitors
+org.gabrielebaldassarre.jira.issues.TalendFlowBasicIssueBehaviour pCrawl_<%=cid%> = new org.gabrielebaldassarre.jira.issues.TalendFlowBasicIssueBehaviour(jiraRestClient_<%=cid%>.getSearchClient(), jiraProgressMonitor_<%=cid%>);
+org.gabrielebaldassarre.jira.issues.TalendRowIssueDetailBehaviour detCrawl_<%=cid%> = new org.gabrielebaldassarre.jira.issues.TalendRowIssueDetailBehaviour(jiraRestClient_<%=cid%>.getIssueClient(), jiraProgressMonitor_<%=cid%>); 
+
+
+pCrawl_<%=cid%>.setKey(issues_<%=cid%>.getColumn("issue"));
+pCrawl_<%=cid%>.setQuery(<%=jql_query%>);
+
+// Link issue detail columns to proper operations
+<%
+	for(Map<String, String> data : conditions){
+		stringBuffer.append(NL);
+		stringBuffer.append("/* column: " + data.get("SCHEMA_COLUMN") + " operation: " + data.get("OPERATION") + " */ ");
+		stringBuffer.append(NL);
+		stringBuffer.append(" detCrawl_" + cid + ".setColumnLink(issuesDetails_" + cid + ".getColumn(\"" + data.get("SCHEMA_COLUMN") + "\"), org.gabrielebaldassarre.jira.issues.JiraIssueField." + data.get("OPERATION") + ");");
+ 		stringBuffer.append(NL);
+	}
+%>
+
+/**
+ * Data retrieval from JIRA
+ */
+// Issue list
+pCrawl_<%=cid%>.visit(issues_<%=cid%>);
+
+int nb_line_<%=cid%>=0;
+ 
+for(com.atlassian.jira.rest.client.domain.BasicIssue issue_<%=cid%> : pCrawl_<%=cid%>){ 

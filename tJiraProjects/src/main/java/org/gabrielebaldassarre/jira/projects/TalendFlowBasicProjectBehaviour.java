@@ -11,12 +11,10 @@ import org.gabrielebaldassarre.tcomponent.bridge.TalendFlow;
 import org.gabrielebaldassarre.tcomponent.bridge.TalendFlowBehaviour;
 import org.gabrielebaldassarre.tcomponent.bridge.TalendListFactory;
 import org.gabrielebaldassarre.tcomponent.bridge.TalendRowFactory;
-import org.gabrielebaldassarre.tcomponent.bridge.TalendType;
 
 import com.atlassian.jira.rest.client.ProgressMonitor;
 import com.atlassian.jira.rest.client.ProjectRestClient;
 import com.atlassian.jira.rest.client.domain.BasicProject;
-import com.atlassian.jira.rest.client.domain.Project;
 
 public class TalendFlowBasicProjectBehaviour implements TalendFlowBehaviour, Iterable<BasicProject>{
 	
