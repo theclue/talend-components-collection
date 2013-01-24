@@ -19,6 +19,7 @@ public enum JiraIssueField {
 	SELF_STRING(false, null, "getSelf", "toString"),
 	SUMMARY(false, null, "getSummary", "toString"),
 	PROJECT(false, null, "getProject"),
+	PROJECT_KEY(false, null, "getProject", "getKey"),
 	PROJECT_NAME(false, null, "getProject", "getName"),
 	PROJECT_SELF_URI(false, null, "getProject", "getSelf"),
 	PROJECT_SELF_STRING(false, null, "getProject", "getSelf", "toString"),
