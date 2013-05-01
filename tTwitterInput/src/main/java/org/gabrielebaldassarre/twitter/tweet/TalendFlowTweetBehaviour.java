@@ -471,7 +471,7 @@ public class TalendFlowTweetBehaviour extends Observable implements TalendFlowBe
 					switch(row.getKey().getType()){
 					case STRING:
 					case LIST:
-						current.setValue(row.getKey(), TweetField.URL_ENTITIES.equals(row.getValue()) ? h : Joiner.on(getEntitiesSeparator()).join(h));
+						current.setValue(row.getKey(), !TalendType.STRING.equals(row.getKey().getType()) ? h : Joiner.on(getEntitiesSeparator()).join(h));
 						break;
 					default:
 						throw new IllegalArgumentException(String.format(rb.getString("exception.uncastableColumn"), row.getKey().getType().getTypeString(), row.getKey().getName()));
@@ -487,8 +487,8 @@ public class TalendFlowTweetBehaviour extends Observable implements TalendFlowBe
 					switch(row.getKey().getType()){
 					case STRING:
 					case LIST:
-						current.setValue(row.getKey(), TweetField.USER_MENTIONS.equals(row.getValue()) ? l : Joiner.on(getEntitiesSeparator()).join(l));
-						break;
+						current.setValue(row.getKey(), !TalendType.STRING.equals(row.getKey().getType()) ? l : Joiner.on(getEntitiesSeparator()).join(l));
+							break;
 					default:
 						throw new IllegalArgumentException(String.format(rb.getString("exception.uncastableColumn"), row.getKey().getType().getTypeString(), row.getKey().getName()));
 					}
@@ -503,7 +503,7 @@ public class TalendFlowTweetBehaviour extends Observable implements TalendFlowBe
 					switch(row.getKey().getType()){
 					case STRING:
 					case LIST:
-						current.setValue(row.getKey(), TweetField.USER_MENTIONS_SCREEN_NAME.equals(row.getValue()) ? h : Joiner.on(getEntitiesSeparator()).join(h));
+						current.setValue(row.getKey(), !TalendType.STRING.equals(row.getKey().getType()) ? h : Joiner.on(getEntitiesSeparator()).join(h));
 						break;
 					default:
 						throw new IllegalArgumentException(String.format(rb.getString("exception.uncastableColumn"), row.getKey().getType().getTypeString(), row.getKey().getName()));
