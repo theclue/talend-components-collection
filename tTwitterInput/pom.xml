@@ -2,10 +2,10 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.gabrielebaldassarre.app</groupId>
-	<artifactId>tTwitterOAuth</artifactId>
+	<artifactId>tTwitterInput</artifactId>
 	<version>1.0</version>
-	<name>tTwitterOAuth</name>
-	<url>http://gabrielebaldassarre.com/talend/ttwitteroauth/</url>
+	<name>tTwitterInput</name>
+	<url>http://gabrielebaldassarre.com/talend/ttwitterinput/</url>
 	<properties>
 		<skipTests>true</skipTests>
 		<component-author>Gabriele Baldassarre</component-author>
@@ -41,6 +41,11 @@
 			<groupId>org.twitter4j</groupId>
 			<artifactId>twitter4j-core</artifactId>
 			<version>[3.0,)</version>
+		</dependency>
+		<dependency>
+			<groupId>org.gabrielebaldassarre</groupId>
+			<artifactId>talend-bridge-api</artifactId>
+			<version>0.2</version>
 		</dependency>
 	</dependencies>
 	<build>
