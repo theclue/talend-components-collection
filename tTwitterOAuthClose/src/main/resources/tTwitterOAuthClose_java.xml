@@ -1,20 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <COMPONENT> 
- <HEADER AUTHOR="Gabriele Baldassarre" 
-   COMPATIBILITY="ALL" 
-   PLATEFORM="ALL" 
-   RELEASE_DATE="20120708A" 
-   SERIAL="" 
-   STARTABLE="true" 
-   STATUS="ALPHA"
-   VERSION="0.1"> 
+ <HEADER AUTHOR="$COMPONENT-AUTHOR$" COMPATIBILITY="ALL"
+		DATA_AUTO_PROPAGATE="true" PLATEFORM="ALL" RELEASE_DATE="$RELEASE-DATE$"
+		SCHEMA_AUTO_PROPAGATE="true" SERIAL="" SHORTNAME="$COMPONENT-NAME$"
+		STARTABLE="true" STATUS="BETA" VERSION="$COMPONENT-VERSION$">
    <SIGNATURE/> 
   </HEADER> 
  <FAMILIES> 
   <FAMILY>Social Analytics/Twitter</FAMILY>
  </FAMILIES> 
  <DOCUMENTATION> 
-   <URL>http://gabrielebaldassarre.com</URL> 
+   <URL>http://gabrielebaldassarre.com/talend/ttwitteroauthclose</URL> 
   </DOCUMENTATION> 
   <CONNECTORS> 
   	<CONNECTOR CTYPE="FLOW" MAX_INPUT="0" MAX_OUTPUT="0"/>
@@ -29,13 +25,10 @@
   </PARAMETERS>
 <ADVANCED_PARAMETERS />
 <CODEGENERATION>
-		<IMPORTS>
-			<IMPORT MODULE="twitter4j-core-2.2.6.jar" NAME="twitter4j-core-2.2.6" REQUIRED="true" />
-			<IMPORT MODULE="twitter4j-async-2.2.6.jar" NAME="twitter4j-async-2.2.6" REQUIRED="true" />
-			<IMPORT MODULE="twitter4j-media-support-2.2.6.jar" NAME="twitter4j-media-support-2.2.6" REQUIRED="true" />
-			<IMPORT MODULE="twitter4j-stream-2.2.6.jar" NAME="twitter4j-stream-2.2.6" REQUIRED="true" />
-		</IMPORTS>
-</CODEGENERATION>
+		<!-- Maven-managed import list DO NOT EDIT BELOW THIS LINE -->
+		<!-- TOSIMPORTS -->
+		<!-- You can edit again below this line -->
+	</CODEGENERATION>
  <RETURNS>
 	<RETURN NAME="USER_ID" TYPE="id_Long" AVAILABILITY="AFTER"/>
 	<RETURN NAME="SCREEN_NAME" TYPE="id_String" AVAILABILITY="AFTER"/>
