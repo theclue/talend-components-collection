@@ -1,0 +1,28 @@
+<%@ jet 
+imports="
+org.talend.core.model.process.INode
+org.talend.designer.codegen.config.CodeGeneratorArgument
+" 
+%>
+<% 
+CodeGeneratorArgument codeGenArgument = (CodeGeneratorArgument) argument;
+INode node = (INode)codeGenArgument.getArgument();
+String cid = node.getUniqueName();
+
+%>
+} // links interating loop
+
+/**
+ * Updates to TOS global map
+ */ 
+globalMap.put("<%=cid %>_NB_LINE", nb_line_<%=cid%>);
+globalMap.put("<%=cid %>_QUERY_STATUS", linksCrawl_<%=cid%>.getStatus());
+globalMap.put("<%=cid %>_ERROR_MESSAGE", linksCrawl_<%=cid%>.getErrorMessage());
+globalMap.put("<%=cid %>_FULL_ERROR", linksCrawl_<%=cid%>.getDetailedError());
+globalMap.put("<%=cid %>_TOTAL_BACKLINKS", linksCrawl_<%=cid%>.getTotalBacklinks());
+
+/**
+ * Clean-up
+ */
+links_<%=cid%>.truncate(); 
+linksCrawl_<%=cid%> = null;

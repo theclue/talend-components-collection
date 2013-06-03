@@ -1,0 +1,222 @@
+<%@ jet 
+imports="
+org.talend.core.model.process.INode
+org.talend.core.model.process.ElementParameterParser
+org.talend.core.model.metadata.IMetadataColumn 
+org.talend.core.model.process.IConnection
+org.talend.designer.codegen.config.CodeGeneratorArgument
+org.talend.core.model.utils.NodeUtil
+java.util.ArrayList
+java.util.Map
+java.util.List
+java.util.HashMap
+" 
+%>
+<%
+
+		CodeGeneratorArgument codeGenArgument = (CodeGeneratorArgument) argument;
+		INode node = (INode)codeGenArgument.getArgument();
+		String cid = node.getUniqueName();
+
+    	/********************
+    	 * DEFINES          *
+     	 ********************/
+
+     	List<IConnection> outMainConns = new ArrayList<IConnection>(); // outgoing main connections
+
+     	List<IMetadataColumn> outMainColumns = null;
+
+		// Parameters
+		String api_key = ElementParameterParser.getValue(node, "__API_KEY__");
+		String token = ElementParameterParser.getValue(node, "__TOKEN__");
+		String datasource = ElementParameterParser.getValue(node, "__DATASOURCE__");
+		String item = ElementParameterParser.getValue(node, "__ITEM__");
+		boolean keep_lost = ("true").equals(ElementParameterParser.getValue(node, "__KEEP_LOST__"));
+		
+		@SuppressWarnings("unchecked")
+		List<Map<String, String>> mapping = (List<Map<String,String>>)ElementParameterParser.getObjectValue(node,  "__MAPPING__");
+		
+		
+		// Advanced parameters
+		String count = ElementParameterParser.getValue(node,"__COUNT__");
+		String maxSourceUrlRef = ElementParameterParser.getValue(node, "__MAX_SOURCE_URL_REF__");
+		String maxSameSourceUrl = ElementParameterParser.getValue(node, "__MAX_SAME_SOURCE_URL__");
+		
+		%>
+		/**
+		 * Default values for dynamic parameters
+		 */
+		boolean keepLost_<%= cid %> = false;
+		org.gabrielebaldassarre.majestic.MajesticEndpoint endpoint_<%= cid %> = org.gabrielebaldassarre.majestic.MajesticEndpoint.DEVELOPMENT;
+		boolean sendToLog_<%= cid %> = false;
+
+		/**
+		 * Effective values for dynamic parameters
+		 */
+
+<% 
+		if( node.getElementParameter("PRODUCTION").isContextMode() ) {
+			stringBuffer.append(NL + "endpoint_" + cid + " = org.gabrielebaldassarre.majestic.MajesticEndpoint." +  (("true").equals(ElementParameterParser.getValue(node, "__PRODUCTION__")) ? "LIVE" : "DEVELOPER") + ";");
+		} else {
+    		if (ElementParameterParser.getValue(node, "__PRODUCTION__").equals("true")) {
+     			stringBuffer.append(NL + "endpoint_" + cid + " = org.gabrielebaldassarre.majestic.MajesticEndpoint.LIVE;");
+				}
+			}
+	
+  		if( node.getElementParameter("KEEP_LOST").isContextMode() ) {
+    		stringBuffer.append(NL + "keepLost_" + cid + " = " + ElementParameterParser.getValue(node, "__KEEP_LOST__") + ";");
+		} else {
+    		if ( ElementParameterParser.getValue(node, "__KEEP_LOST__").equals("true") ) {
+		   	stringBuffer.append(NL + "keepLost_" + cid + "  = true;");
+			}
+		}
+		
+		if( node.getElementParameter("SEND_TO_LOGCATCHER").isContextMode() ) {
+    		stringBuffer.append(NL + "sendToLog_" + cid + " = " + ElementParameterParser.getValue(node, "__SEND_TO_LOGCATCHER__") + ";");
+		} else {
+    		if ( ElementParameterParser.getValue(node, "__SEND_TO_LOGCATCHER__").equals("true") ) {
+    			stringBuffer.append(NL + "sendToLog_" + cid + " = true;");
+			}
+		}
+		
+		// Decoding outgoing connections
+    	for(IConnection conn: node.getOutgoingConnections()){
+    		if(!conn.isActivate()) continue;
+    		IConnection cc = NodeUtil.getRealConnectionTypeBased(conn);
+    		outMainConns.add(cc);
+    	}
+%>
+		/**
+		 * Talend Bridge Logger
+		 * @see http://gabrielebaldassarre.com
+		 */
+		
+		class MajesticLogger_<%=cid%> implements java.util.Observer{
+		
+			private boolean sendToLog = false;
+			
+			public MajesticLogger_<%=cid%>(boolean sendToLog){
+				this.sendToLog = sendToLog;
+			}
+
+			   public void update(java.util.Observable obs, Object obj)
+			   {
+			   if(sendToLog == true) {
+			   if("WARNING".equals(((org.gabrielebaldassarre.majestic.MajesticLogger)obj).getSeverity())){
+			   <%
+						if (node.getProcess().getNodesOfType("tLogCatcher").size() > 0) {
+							@SuppressWarnings("unchecked")
+							List<INode> logCatchers = (List<INode>)node.getProcess().getNodesOfType("tLogCatcher");
+							for (INode logCatcher : logCatchers) {
+								if (("true").equals(ElementParameterParser.getValue(logCatcher, "__CATCH_TWARN__"))) { %>
+									<%=logCatcher.getUniqueName() %>.addMessage("tWarn", "<%=cid %>", 10, ((org.gabrielebaldassarre.majestic.MajesticLogger)obj).getMessage(), 210);
+									try {
+									<%=logCatcher.getDesignSubjobStartNode().getUniqueName() %>Process(globalMap);
+									} catch (TalendException e){
+									System.err.println(e.getMessage());
+									}
+								<%
+								}
+							}
+						}
+				%>
+				}  else if("TRACE".equals(((org.gabrielebaldassarre.majestic.MajesticLogger)obj).getSeverity()) || "INFO".equals(((org.gabrielebaldassarre.majestic.MajesticLogger)obj).getSeverity()) || "DEBUG".equals(((org.gabrielebaldassarre.majestic.MajesticLogger)obj).getSeverity())){
+			   <%
+						if (node.getProcess().getNodesOfType("tLogCatcher").size() > 0) {
+							@SuppressWarnings("unchecked")
+							List<INode> logCatchers = (List<INode>)node.getProcess().getNodesOfType("tLogCatcher");
+							for (INode logCatcher : logCatchers) {
+								if (("true").equals(ElementParameterParser.getValue(logCatcher, "__CATCH_TDIE__"))) { %>
+									<%=logCatcher.getUniqueName() %>.addMessage("tWarn", "<%=cid %>", 0, ((org.gabrielebaldassarre.majestic.MajesticLogger)obj).getMessage(), 210);
+									try {
+									<%=logCatcher.getDesignSubjobStartNode().getUniqueName() %>Process(globalMap);
+									} catch (TalendException e){
+									System.err.println(e.getMessage());
+									}
+								<%
+								}
+							}
+						}
+				%>
+				} 
+		 		} else { System.out.println(((org.gabrielebaldassarre.majestic.MajesticLogger)obj).getSeverity() + " NODE: <%=cid %>" + " MESSAGE: " + ((org.gabrielebaldassarre.majestic.MajesticLogger)obj).getMessage()); }
+			   	resumeUtil.addLog(((org.gabrielebaldassarre.majestic.MajesticLogger)obj).getCategory(), "NODE:<%=cid %>", "", ((org.gabrielebaldassarre.majestic.MajesticLogger)obj).getThreadId() + "", ((org.gabrielebaldassarre.majestic.MajesticLogger)obj).getSeverity(),"",((org.gabrielebaldassarre.majestic.MajesticLogger)obj).getMessage(),"", "");
+			   
+			   } //update
+			
+		} //endclass
+		
+		MajesticLogger_<%=cid%> majesticLogger_<%=cid%> = new MajesticLogger_<%=cid%>(sendToLog_<%= cid %>);
+		
+/**
+ * <%=cid%> global variables
+ */
+int nb_line_<%=cid%> = 0;
+String query__<%=cid%> = "";
+String error_message__<%=cid%> = "";
+String full_error_<%=cid%> = "";
+
+		/**
+		 * TOS-bridge data structures
+		 * @see http://gabrielebaldassarre.com
+		 */
+		 
+		// data model initialization      
+		org.gabrielebaldassarre.tcomponent.bridge.TalendFlowController tcontroller_<%=cid%> = org.gabrielebaldassarre.tcomponent.bridge.TalendFlowController.getInstance();
+		org.gabrielebaldassarre.tcomponent.bridge.TalendFlowModel tmodel_<%=cid%> = tcontroller_<%=cid%>.getModel(new org.gabrielebaldassarre.tcomponent.bridge.TalendContext(globalMap));
+
+		// flows factory interface
+		org.gabrielebaldassarre.tcomponent.bridge.TalendFlowFactory tablefactory_<%=cid%> = tmodel_<%=cid%>.getFlowFactory();
+		        
+		// Prepare needed data flow
+		org.gabrielebaldassarre.tcomponent.bridge.TalendFlow links_<%=cid%> = tablefactory_<%=cid%>.newFlow("Backlinks", null, false);
+
+<%
+ if(outMainConns.size() > 0){
+ 
+ 	stringBuffer.append(NL + "links_" + cid + NL);
+ 
+	IConnection conn = outMainConns.get(0);
+	
+	outMainColumns = conn.getMetadataTable().getListColumns();  
+  	Map<String,IMetadataColumn> columnsMap = new HashMap<String,IMetadataColumn>();
+  	for (IMetadataColumn col : outMainColumns) columnsMap.put(col.getLabel(),col);
+
+	for(Map<String, String> data : mapping){
+		String schemaColumn = data.get("SCHEMA_COLUMN"); 
+		String type = columnsMap.get(schemaColumn).getTalendType();
+
+		stringBuffer.append(".addColumn(\"" + schemaColumn +"\", org.gabrielebaldassarre.tcomponent.bridge.TalendType.getInstanceFromTalendId(\"" + type + "\"))" + NL);
+	}
+	
+	stringBuffer.append(";" + NL);
+}
+%>
+		// Prepare visitors
+		org.gabrielebaldassarre.majestic.backlink.TalendFlowBacklinkBehaviour linksCrawl_<%=cid%> = new org.gabrielebaldassarre.majestic.backlink.TalendFlowBacklinkBehaviour(<%= ("".equals(api_key) ?  "null" : api_key) + ", endpoint_" + cid + ", " +  ("".equals(token) ?  "null" : token) %>, org.gabrielebaldassarre.majestic.MajesticDatasource.<%=datasource%>, <%=item%>);
+		<% if(!("".equals(count))) { %> linksCrawl_<%=cid%>.setCount(<%=count%>); <% } %>
+		<% if(!("".equals(maxSourceUrlRef))) { %> linksCrawl_<%=cid%>.setMaxSourceUrlRef(<%=maxSourceUrlRef%>); <% } %>
+		<% if(!("".equals(maxSameSourceUrl))) { %> linksCrawl_<%=cid%>.setMaxSameSourceUrl(<%=maxSameSourceUrl%>); <% } %>
+		linksCrawl_<%=cid%>.getDeletedLinks(keepLost_<%=cid%>);
+		
+		linksCrawl_<%=cid%>.addObserver(majesticLogger_<%=cid%>);
+		
+		// Link backlinks details column to desired data
+<%
+	if(outMainConns.size() > 0){
+	
+	stringBuffer.append(NL + "linksCrawl_" + cid + NL);
+
+	for(Map<String, String> data : mapping){
+		String schemaColumn = data.get("SCHEMA_COLUMN"); 
+		String operation = data.get("OPERATION"); 
+
+		stringBuffer.append(".setColumnLink(links_" + cid + ".getColumn(\"" + schemaColumn + "\"), org.gabrielebaldassarre.majestic.MajesticBacklink." + operation + ")" + NL);
+	}
+	
+	stringBuffer.append(";" + NL);
+}
+ %>
+		linksCrawl_<%=cid%>.visit(links_<%=cid%>);
+		
+		for(org.gabrielebaldassarre.tcomponent.bridge.TalendRow link_<%=cid%> : java.util.Arrays.asList(links_<%=cid%>.getRows())){
