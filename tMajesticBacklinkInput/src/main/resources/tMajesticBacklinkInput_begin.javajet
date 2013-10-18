@@ -39,6 +39,7 @@ java.util.HashMap
 		
 		// Advanced parameters
 		String count = ElementParameterParser.getValue(node,"__COUNT__");
+		String maxRetry = ElementParameterParser.getValue(node,"__MAX_RETRY__");
 		String maxSourceUrlRef = ElementParameterParser.getValue(node, "__MAX_SOURCE_URL_REF__");
 		String maxSameSourceUrl = ElementParameterParser.getValue(node, "__MAX_SAME_SOURCE_URL__");
 		
@@ -195,6 +196,7 @@ String full_error_<%=cid%> = "";
 		// Prepare visitors
 		org.gabrielebaldassarre.majestic.backlink.TalendFlowBacklinkBehaviour linksCrawl_<%=cid%> = new org.gabrielebaldassarre.majestic.backlink.TalendFlowBacklinkBehaviour(<%= ("".equals(api_key) ?  "null" : api_key) + ", endpoint_" + cid + ", " +  ("".equals(token) ?  "null" : token) %>, org.gabrielebaldassarre.majestic.MajesticDatasource.<%=datasource%>, <%=item%>);
 		<% if(!("".equals(count))) { %> linksCrawl_<%=cid%>.setCount(<%=count%>); <% } %>
+		<% if(!("".equals(maxRetry))) { %> linksCrawl_<%=cid%>.setMaxRetry(<%=maxRetry%>); <% } %>
 		<% if(!("".equals(maxSourceUrlRef))) { %> linksCrawl_<%=cid%>.setMaxSourceUrlRef(<%=maxSourceUrlRef%>); <% } %>
 		<% if(!("".equals(maxSameSourceUrl))) { %> linksCrawl_<%=cid%>.setMaxSameSourceUrl(<%=maxSameSourceUrl%>); <% } %>
 		linksCrawl_<%=cid%>.getDeletedLinks(keepLost_<%=cid%>);
