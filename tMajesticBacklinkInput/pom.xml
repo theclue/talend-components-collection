@@ -1,9 +1,10 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <artifactId>tMajesticBacklinkInput</artifactId>
-  <groupId>org.gabrielebaldassarre.app</groupId>
-  <version>1.0</version>
-  <name>tMajesticBacklinkInput</name>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<artifactId>tMajesticBacklinkInput</artifactId>
+	<groupId>org.gabrielebaldassarre.app</groupId>
+	<version>1.0</version>
+	<name>tMajesticBacklinkInput</name>
 	<url>http://gabrielebaldassarre.com/talend/tmajesticbacklinkInput/</url>
 	<properties>
 		<skipTests>true</skipTests>
@@ -23,16 +24,22 @@
 			<id>theclue-releases</id>
 			<url>https://raw.github.com/theclue/theclue-maven-repo/master/releases</url>
 		</repository>
-		
+
 	</repositories>
 	<dependencies>
 		<dependency>
-            <groupId>com.majesticseo.external.rpc</groupId>
-            <artifactId>majesticseo-external-rpc</artifactId>
-            <version>0.9.3</version>
-            <type>jar</type>
-        </dependency>
-        <dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.11</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.majesticseo.external.rpc</groupId>
+			<artifactId>majesticseo-external-rpc</artifactId>
+			<version>0.9.3</version>
+			<type>jar</type>
+		</dependency>
+		<dependency>
 			<groupId>org.gabrielebaldassarre</groupId>
 			<artifactId>talend-bridge-api</artifactId>
 			<version>0.2</version>
