@@ -57,7 +57,7 @@ java.util.HashMap
 
 <% 
 		if( node.getElementParameter("PRODUCTION").isContextMode() ) {
-			stringBuffer.append(NL + "endpoint_" + cid + " = org.gabrielebaldassarre.majestic.MajesticEndpoint." +  (("true").equals(ElementParameterParser.getValue(node, "__PRODUCTION__")) ? "LIVE" : "DEVELOPMENT") + ";");
+			stringBuffer.append(NL + "endpoint_" + cid + " = " + ElementParameterParser.getValue(node, "__PRODUCTION__") + " ? org.gabrielebaldassarre.majestic.MajesticEndpoint.LIVE : org.gabrielebaldassarre.majestic.MajesticEndpoint.DEVELOPMENT;");
 		} else {
     		if (ElementParameterParser.getValue(node, "__PRODUCTION__").equals("true")) {
      			stringBuffer.append(NL + "endpoint_" + cid + " = org.gabrielebaldassarre.majestic.MajesticEndpoint.LIVE;");
