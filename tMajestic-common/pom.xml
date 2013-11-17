@@ -1,0 +1,36 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.gabrielebaldassarre</groupId>
+  <artifactId>tMajestic-common</artifactId>
+  <version>1.0</version>
+  <name>tMajestic-common</name>
+  <description>This package holds all the classes and enums commons to every Talend Majestic component</description>
+  <url>http://gabrielebaldassarre.com/talend/tmajesticbacklinkInput/</url>
+	<properties>
+		<skipTests>true</skipTests>
+		<component-author>Gabriele Baldassarre</component-author>
+		<dependencyVersion>false</dependencyVersion>
+		<addMavenDescription>true</addMavenDescription>
+		<useSnapshot>true</useSnapshot>
+		<componentsFolder>${user.home}/talend_components</componentsFolder>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+	<repositories>
+		<repository>
+			<id>theclue-snapshots</id>
+			<url>https://raw.github.com/theclue/theclue-maven-repo/master/snapshots</url>
+		</repository>
+		<repository>
+			<id>theclue-releases</id>
+			<url>https://raw.github.com/theclue/theclue-maven-repo/master/releases</url>
+		</repository>
+		
+	</repositories>
+	<dependencies>
+        <dependency>
+			<groupId>org.gabrielebaldassarre</groupId>
+			<artifactId>talend-bridge-api</artifactId>
+			<version>0.2</version>
+		</dependency>
+	</dependencies>
+</project>
