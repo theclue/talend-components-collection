@@ -1,0 +1,237 @@
+<%@ jet 
+imports="
+org.talend.core.model.process.INode
+org.talend.core.model.process.ElementParameterParser
+org.talend.core.model.metadata.IMetadataColumn 
+org.talend.core.model.process.IConnection
+org.talend.designer.codegen.config.CodeGeneratorArgument
+org.talend.core.model.utils.NodeUtil
+java.util.ArrayList
+java.util.Map
+java.util.List
+java.util.HashMap
+" 
+%>
+<%
+
+		CodeGeneratorArgument codeGenArgument = (CodeGeneratorArgument) argument;
+		INode node = (INode)codeGenArgument.getArgument();
+		String cid = node.getUniqueName();
+
+    	/********************
+    	 * DEFINES          *
+     	 ********************/
+
+     	List<IConnection> outMainConns = new ArrayList<IConnection>(); // outgoing main connections
+     	List<IConnection> outJsonConns = new ArrayList<IConnection>(); // outgoing json connections
+
+     	List<IMetadataColumn> outMainColumns = null;
+
+		// Parameters
+		String logical = ElementParameterParser.getValue(node,"__LOGICAL_OP__");
+
+		@SuppressWarnings("unchecked")    
+		List<Map<String, String>> keywords = (List<Map<String,String>>)ElementParameterParser.getObjectValue(node,  "__KEYWORDS__");
+		
+		@SuppressWarnings("unchecked")    
+		List<Map<String, String>> languages = (List<Map<String,String>>)ElementParameterParser.getObjectValue(node,  "__LANGUAGES__");
+		
+		@SuppressWarnings("unchecked")    
+		List<Map<String, String>> conditions = (List<Map<String,String>>)ElementParameterParser.getObjectValue(node,  "__CONDITIONS__");
+		
+		@SuppressWarnings("unchecked")
+		List<Map<String, String>> mapping = (List<Map<String,String>>)ElementParameterParser.getObjectValue(node,  "__MAPPING__");
+		
+		String oauth_connection = ElementParameterParser.getValue(node, "__OAUTH_CONNECTION__"); 
+
+		// Advanced parameters
+		String entitySeparator = ElementParameterParser.getValue(node,"__ENTITY_SEPARATOR__");
+		boolean entityPrefix = ("true").equals(ElementParameterParser.getValue(node, "__ENTITY_PREFIX__"));
+		
+
+		Integer limit = Integer.parseInt(ElementParameterParser.getValue(node,"__LIMIT__").equals("") ? "1000" : ElementParameterParser.getValue(node,"__LIMIT__"));
+		Integer rpp = 200;
+
+		boolean filter_links = ("true").equals(ElementParameterParser.getValue(node, "__FILTER_LINKS__"));
+
+		// Log parameters
+		boolean send_to_logcatcher = ("true").equals(ElementParameterParser.getValue(node, "__SEND_TO_LOGCATCHER__"));
+
+		boolean hasJsonConnections = (node.getOutgoingConnections("JSON").size() != 0);
+		
+		// Decoding outgoing connections
+		for(IConnection conn: node.getOutgoingConnections("JSON")){
+    		if(!conn.isActivate()) continue;
+    		IConnection cc = NodeUtil.getRealConnectionTypeBased(conn);
+    		outJsonConns.add(cc);
+    	}
+		
+    	for(IConnection conn: node.getOutgoingConnections("STANDARD")){
+    		if(!conn.isActivate()) continue;
+    		IConnection cc = NodeUtil.getRealConnectionTypeBased(conn);
+    		outMainConns.add(cc);
+    	}
+
+%>
+		/**
+		 * Talend Bridge Logger
+		 * @see http://gabrielebaldassarre.com
+		 */
+		
+		class TalendTwitterLogger_<%=cid%> implements java.util.Observer{
+
+			   public void update(java.util.Observable obs, Object obj)
+			   {
+			   <% if(send_to_logcatcher == true) {
+						if (node.getProcess().getNodesOfType("tLogCatcher").size() > 0) {
+							@SuppressWarnings("unchecked")
+							List<INode> logCatchers = (List<INode>)node.getProcess().getNodesOfType("tLogCatcher");
+							for (INode logCatcher : logCatchers) {
+								if (("true").equals(ElementParameterParser.getValue(logCatcher, "__CATCH_TWARN__"))) { %>
+									<%=logCatcher.getUniqueName() %>.addMessage("tWarn", "<%=cid %>", 4, ((org.gabrielebaldassarre.twitter.stream.tweet.TwitterLogger)obj).getMessage(), 210);
+									<%=logCatcher.getDesignSubjobStartNode().getUniqueName() %>Process(globalMap);
+								<%
+								}
+							}
+						}
+		 			} %>
+			   	resumeUtil.addLog(((org.gabrielebaldassarre.twitter.stream.tweet.TwitterLogger)obj).getCategory(), "NODE:<%=cid %>", "", ((org.gabrielebaldassarre.twitter.stream.tweet.TwitterLogger)obj).getThreadId() + "", ((org.gabrielebaldassarre.twitter.stream.tweet.TwitterLogger)obj).getSeverity(),"",((org.gabrielebaldassarre.twitter.stream.tweet.TwitterLogger)obj).getMessage(),"", "");
+				   System.err.println(((org.gabrielebaldassarre.twitter.stream.tweet.TwitterLogger)obj).getMessage());
+			}
+		}
+		
+		TalendTwitterLogger_<%=cid%> twitterLogger_<%=cid%> = new TalendTwitterLogger_<%=cid%>();
+
+		int nb_line_<%=cid%> = 0;
+		
+ 		//Build Filter
+ 		
+ 		java.util.List<String> languageList_<%=cid%> = new java.util.ArrayList<String>();
+		java.util.List<String> keywordList_<%=cid%> = new java.util.ArrayList<String>();
+		java.util.List<String> excludeList_<%=cid%> = new java.util.ArrayList<String>();
+		java.util.List<String> fromList_<%=cid%> = new java.util.ArrayList<String>();
+		java.util.List<String> atList_<%=cid%> = new java.util.ArrayList<String>();
+		
+		<%
+		
+		for(Map<String, String> data : keywords){
+			stringBuffer.append("keywordList_"+cid+".add(" + data.get("KEYWORD") + ");");
+ 			stringBuffer.append(NL);
+		}
+		
+		for(Map<String, String> data : languages){
+			stringBuffer.append("languageList_"+cid+".add(\"" + data.get("LANGUAGE") + "\");");
+ 			stringBuffer.append(NL);
+		}
+		
+		for(Map<String, String> data : conditions){
+			String dataString = data.get("OPERATOR");
+ 			
+ 			if("EXCLUDE".equals(dataString)){
+ 				stringBuffer.append("excludeList_"+cid+".add(" + data.get("QUERY") + ");");
+ 				stringBuffer.append(NL);
+ 			}
+ 			
+ 			 if("AT".equals(dataString)){
+ 				stringBuffer.append("atList_"+cid+".add(" + data.get("QUERY") + ");");
+ 				stringBuffer.append(NL);
+ 			}
+ 			
+ 			 if("FROM".equals(dataString)){
+ 				stringBuffer.append("fromList_"+cid+".add(" + data.get("QUERY") + ");");
+ 				stringBuffer.append(NL);
+ 			}
+		}
+	
+		%>
+		
+		String[] languages_<%=cid%> = languageList_<%=cid%>.toArray(new String[languageList_<%=cid%>.size()]);
+		String[] keywords_<%=cid%> = keywordList_<%=cid%>.toArray(new String[keywordList_<%=cid%>.size()]);
+		String[] exclude_<%=cid%> = excludeList_<%=cid%>.toArray(new String[excludeList_<%=cid%>.size()]);
+		String[] at_<%=cid%> = atList_<%=cid%>.toArray(new String[atList_<%=cid%>.size()]);
+		String[] from_<%=cid%> = fromList_<%=cid%>.toArray(new String[fromList_<%=cid%>.size()]);
+		
+		twitter4j.FilterQuery fq_<%=cid%> = new twitter4j.FilterQuery();
+		fq_<%=cid%>.track(keywords_<%=cid%>).language(languages_<%=cid%>);
+
+		/**
+		 * TOS-bridge data structures
+		 * @see http://gabrielebaldassarre.com
+		 */
+		 
+		// data model initialization      
+		org.gabrielebaldassarre.tcomponent.bridge.TalendFlowController tcontroller_<%=cid%> = org.gabrielebaldassarre.tcomponent.bridge.TalendFlowController.getInstance();
+		org.gabrielebaldassarre.tcomponent.bridge.TalendFlowModel tmodel_<%=cid%> = tcontroller_<%=cid%>.getModel(new org.gabrielebaldassarre.tcomponent.bridge.TalendContext(globalMap));
+
+		// flows factory interface
+		org.gabrielebaldassarre.tcomponent.bridge.TalendFlowFactory tablefactory_<%=cid%> = tmodel_<%=cid%>.getFlowFactory();
+		        
+		// init needed data flows
+		org.gabrielebaldassarre.tcomponent.bridge.TalendFlow queryResults_<%=cid%> = tablefactory_<%=cid%>.newFlow("Twitter Query Results", 0, false);
+		org.gabrielebaldassarre.tcomponent.bridge.TalendFlow tweets_<%=cid%> = tablefactory_<%=cid%>.newFlow("Tweets", <%=2*rpp%>, false);
+      
+      // Prepare columns for query results data flow
+		queryResults_<%=cid%>.addColumn("statusSet", org.gabrielebaldassarre.twitter.stream.tweet.QueryResultField.STATUS_SET.getTalendType(), null, false)
+					.addColumn("hasNext", org.gabrielebaldassarre.twitter.stream.tweet.QueryResultField.HAS_NEXT.getTalendType(), false, false)
+					.addColumn("nextQuery", org.gabrielebaldassarre.twitter.stream.tweet.QueryResultField.NEXT_QUERY.getTalendType(), null, false);
+		
+		// Prepare columns for tweets details data flow
+<%
+if(outMainConns.size() > 0 || hasJsonConnections == true) stringBuffer.append(NL + "tweets_" + cid + NL); 
+ if(outMainConns.size() > 0){
+ 
+	IConnection conn = outMainConns.get(0);
+	
+	outMainColumns = conn.getMetadataTable().getListColumns();  
+  	Map<String,IMetadataColumn> columnsMap = new HashMap<String,IMetadataColumn>();
+  	for (IMetadataColumn col : outMainColumns) columnsMap.put(col.getLabel(),col);
+
+	for(Map<String, String> data : mapping){
+		String schemaColumn = data.get("SCHEMA_COLUMN"); 
+		String type = columnsMap.get(schemaColumn).getTalendType();
+
+		stringBuffer.append(".addColumn(\"" + schemaColumn +"\", org.gabrielebaldassarre.tcomponent.bridge.TalendType.getInstanceFromTalendId(\"" + type + "\"))" + NL);
+	}
+}
+if(hasJsonConnections == true) stringBuffer.append(".addColumn(\"jsonString\", org.gabrielebaldassarre.tcomponent.bridge.TalendType.getInstanceFromTalendId(\"id_String\"))" + NL);
+if(outMainConns.size() > 0 || hasJsonConnections == true) stringBuffer.append(";" + NL);	
+%>
+		// Prepare visitors
+
+		org.gabrielebaldassarre.twitter.stream.tweet.TalendRowTweetBehaviour trCrawl_<%=cid%> = new org.gabrielebaldassarre.twitter.stream.tweet.TalendRowTweetBehaviour((twitter4j.TwitterStream)globalMap.get("twitter_<%= oauth_connection %>"), <%=entitySeparator%>, <%=entityPrefix%>, org.gabrielebaldassarre.twitter.stream.tweet.TwitterLogicalOperator.<%=logical%>);
+		trCrawl_<%=cid%>.addObserver(twitterLogger_<%=cid%>);
+		
+		//add Listener
+		org.gabrielebaldassarre.twitter.stream.tweet.listener.MyStatusListener statusListener_<%=cid%> = new org.gabrielebaldassarre.twitter.stream.tweet.listener.MyStatusListener();
+		statusListener_<%=cid%>.addObserver(trCrawl_<%=cid%>);
+		trCrawl_<%=cid%>.addListener(statusListener_<%=cid%>);
+		
+		//add Filter
+		trCrawl_<%=cid%>.setExcludes(exclude_<%=cid%>);
+		trCrawl_<%=cid%>.setFroms(from_<%=cid%>);
+		trCrawl_<%=cid%>.setAts(at_<%=cid%>);
+		trCrawl_<%=cid%>.setFilter_links(<%=filter_links%>);
+		
+		trCrawl_<%=cid%>.addFilter(fq_<%=cid%>);
+		
+	// Link tweet details column to desired data
+<%
+	if(outMainConns.size() > 0 || hasJsonConnections == true) stringBuffer.append(NL + "trCrawl_" + cid + NL);
+	if(outMainConns.size() > 0){
+
+	for(Map<String, String> data : mapping){
+		String schemaColumn = data.get("SCHEMA_COLUMN"); 
+		String operation = data.get("OPERATION"); 
+
+		stringBuffer.append(".setColumnLink(tweets_" + cid + ".getColumn(\"" + schemaColumn + "\"), org.gabrielebaldassarre.twitter.stream.tweet.TweetField." + operation + ")" + NL);
+	}
+}
+ if(hasJsonConnections == true) stringBuffer.append(".setColumnLink(tweets_" + cid + ".getColumn(\"jsonString\"), org.gabrielebaldassarre.twitter.stream.tweet.TweetField.JSON)" + NL);
+if(outMainConns.size() > 0 || hasJsonConnections == true) stringBuffer.append(";" + NL);
+ %>
+ 
+ 	while(nb_line_<%=cid%> < <%=limit%>){
+ 		tweets_<%=cid%>.truncate();
+		trCrawl_<%=cid%>.visit(tweets_<%=cid%>);
+		
+		for(org.gabrielebaldassarre.tcomponent.bridge.TalendRow singleTweet_<%=cid%> : java.util.Arrays.asList(tweets_<%=cid%>.getRows())){						
