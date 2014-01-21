@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.gabrielebaldassarre.app</groupId>
 	<artifactId>tTwitterOAuthClose</artifactId>
-	<version>1.0</version>
+	<version>1.1</version>
 	<name>tTwitterOAuthClose</name>
 	<url>http://gabrielebaldassarre.com/talend/ttwitteroauthclose/</url>
 	<properties>

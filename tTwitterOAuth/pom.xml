@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.gabrielebaldassarre.app</groupId>
 	<artifactId>tTwitterOAuth</artifactId>
-	<version>1.0</version>
+	<version>1.1</version>
 	<name>tTwitterOAuth</name>
 	<url>http://gabrielebaldassarre.com/talend/ttwitteroauth/</url>
 	<properties>
