@@ -18,7 +18,7 @@ String consumer_secret = ElementParameterParser.getValue(node,"__CONSUMER_SECRET
 String access_token = ElementParameterParser.getValue(node,"__ACCESS_TOKEN__");
 String access_token_secret = ElementParameterParser.getValue(node,"__ACCESS_TOKEN_SECRET__");
 String connection_type = ElementParameterParser.getValue(node,"__CONNECTION_TYPE__");
-String logger = ElementParameterParser.getValue(node,"__LOGGER__");
+boolean use_ssl = ("true").equals(ElementParameterParser.getValue(node, "__USE_SSL__"));
 
 %>
 twitter4j.conf.ConfigurationBuilder cb_<%= cid %> = new twitter4j.conf.ConfigurationBuilder();
@@ -26,7 +26,7 @@ cb_<%= cid %>.setOAuthConsumerKey(<%= consumer_key %>);
 cb_<%= cid %>.setOAuthConsumerSecret(<%= consumer_secret %>);
 cb_<%= cid %>.setOAuthAccessToken(<%= access_token %>);
 cb_<%= cid %>.setOAuthAccessTokenSecret(<%= access_token_secret %>);
-//cb_<%= cid %>.setLoggerImpl(<%=logger.length() > 0 ? "\"twitter4j.internal.logging." + logger + "\"" : null%>);
+cb_<%= cid %>.setUseSSL(<%=use_ssl%>);
 
 /**
  * TODO: it's better to enable json ONLY if there are some json connection in the whole job
