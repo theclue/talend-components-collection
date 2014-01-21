@@ -28,6 +28,8 @@
 		String rCode = ElementParameterParser.getValue(node,"__R_CODE__");
 		String clientType = ElementParameterParser.getValue(node,"__CLIENT_TYPE__");
 		String args = ElementParameterParser.getValue(node,"__R_START_ARGS__");
+		String rFile = ElementParameterParser.getValue(node,"__R_FILE__");
+		boolean rScript = ("true").equals(ElementParameterParser.getValue(node, "__R_SCRIPT__"));
 		
 		// Log parameters
 		boolean send_to_logcatcher = ("true").equals(ElementParameterParser.getValue(node, "__SEND_TO_LOGCATCHER__"));		
@@ -76,7 +78,7 @@
 		 org.gabrielebaldassarre.customcode.jri.tJRIClient client_<%=cid%> = factory_<%=cid%>.getClient();
 		 
 		 ((java.util.Observable) client_<%=cid%>).addObserver(jriLogger_<%=cid%>);
-		 
-		 client_<%=cid%>.eval(<%=rCode%>);
+		 		 
+		 client_<%=cid%>.eval(<%= rScript ? "\"source(" + rFile.replaceAll("\"", "'") + ")\"" : rCode%>);
 		 
 		 client_<%=cid%>.q();
