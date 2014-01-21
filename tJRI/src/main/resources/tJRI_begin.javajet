@@ -1,0 +1,82 @@
+<%@ jet 
+	imports="
+		org.talend.core.model.process.INode 
+		org.talend.core.model.process.ElementParameterParser 
+		org.talend.core.model.metadata.IMetadataTable 
+		org.talend.core.model.metadata.IMetadataColumn 
+		org.talend.core.model.process.IConnection
+		org.talend.core.model.process.IConnectionCategory
+		org.talend.designer.codegen.config.CodeGeneratorArgument
+		org.talend.core.model.metadata.types.JavaTypesManager
+		org.talend.core.model.metadata.types.JavaType
+		java.util.List 
+    	java.util.Map		
+	" 
+%>
+<% 
+    CodeGeneratorArgument codeGenArgument = (CodeGeneratorArgument) argument;
+    INode node = (INode)codeGenArgument.getArgument();
+    String cid = node.getUniqueName();
+
+    	/********************
+    	 * DEFINES          *
+     	 ********************/
+
+     	List<IMetadataColumn> outMainColumns = null;
+
+		// Parameters
+		String rCode = ElementParameterParser.getValue(node,"__R_CODE__");
+		String clientType = ElementParameterParser.getValue(node,"__CLIENT_TYPE__");
+		String args = ElementParameterParser.getValue(node,"__R_START_ARGS__");
+		
+		// Log parameters
+		boolean send_to_logcatcher = ("true").equals(ElementParameterParser.getValue(node, "__SEND_TO_LOGCATCHER__"));		
+
+%>
+		/**
+		 * Talend Bridge Logger
+		 * @see http://gabrielebaldassarre.com
+		 */		
+		class JRILogger_<%=cid%> implements java.util.Observer{
+
+			   public void update(java.util.Observable obs, Object obj)
+			   {
+			   <% if(send_to_logcatcher == true) {
+						if (node.getProcess().getNodesOfType("tLogCatcher").size() > 0) {
+							@SuppressWarnings("unchecked")
+							List<INode> logCatchers = (List<INode>)node.getProcess().getNodesOfType("tLogCatcher");
+							for (INode logCatcher : logCatchers) {
+								if (("true").equals(ElementParameterParser.getValue(logCatcher, "__CATCH_TWARN__"))) { %>
+								try {
+									<%=logCatcher.getUniqueName() %>.addMessage("tWarn", "<%=cid %>", 4, ((org.gabrielebaldassarre.customcode.jri.tJRILogger)obj).getMessage(), 210);
+									<%=logCatcher.getDesignSubjobStartNode().getUniqueName() %>Process(globalMap);
+									} catch(TalendException e){
+									System.err.println(e.getMessage());
+									}
+								<%
+								}
+							}
+						}
+		 			} %>
+			   	resumeUtil.addLog(((org.gabrielebaldassarre.customcode.jri.tJRILogger)obj).getCategory(), "NODE:<%=cid %>", "", ((org.gabrielebaldassarre.customcode.jri.tJRILogger)obj).getThreadId() + "", ((org.gabrielebaldassarre.customcode.jri.tJRILogger)obj).getSeverity(),"",((org.gabrielebaldassarre.customcode.jri.tJRILogger)obj).getMessage(),"", "");
+				System.err.println(((org.gabrielebaldassarre.customcode.jri.tJRILogger)obj).getMessage());
+			   }
+			
+		}
+		
+		JRILogger_<%=cid%> jriLogger_<%=cid%> = new JRILogger_<%=cid%>();
+		
+		 org.gabrielebaldassarre.customcode.jri.tJRIBuilder setup_<%=cid%> = new org.gabrielebaldassarre.customcode.jri.tJRIBuilder();
+		 setup_<%=cid%>.args(<%=args%>, " ").clientType(org.gabrielebaldassarre.customcode.jri.tJRIClientType.<%=clientType%>);
+		 
+		 org.gabrielebaldassarre.customcode.jri.tJRIClientFactory factory_<%=cid%> = new org.gabrielebaldassarre.customcode.jri.tJRIClientFactory(setup_<%=cid%>);
+		 
+		 factory_<%=cid%>.addObserver(jriLogger_<%=cid%>);
+		  
+		 org.gabrielebaldassarre.customcode.jri.tJRIClient client_<%=cid%> = factory_<%=cid%>.getClient();
+		 
+		 ((java.util.Observable) client_<%=cid%>).addObserver(jriLogger_<%=cid%>);
+		 
+		 client_<%=cid%>.eval(<%=rCode%>);
+		 
+		 client_<%=cid%>.q();
