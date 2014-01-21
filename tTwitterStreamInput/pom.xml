@@ -1,10 +1,11 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>org.gabrielebaldassarre.app</groupId>
 	<artifactId>tTwitterStreamInput</artifactId>
-	<version>1.0.2-SNAPSHOT</version>
+	<version>1.0</version>
 
 	<name>tTwitterStreamInput</name>
 	<url>http://gabrielebaldassarre.com/talend/ttwitterstreaminput/</url>
@@ -15,35 +16,13 @@
 		<dependencyVersion>false</dependencyVersion>
 		<addMavenDescription>true</addMavenDescription>
 		<useSnapshot>true</useSnapshot>
-		<componentsFolder>${user.home}/Scrivania/Seat/talendComponents</componentsFolder>
+		<componentsFolder>${user.home}/talend_components</componentsFolder>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
 	<prerequisites>
 		<maven>2.2.1</maven>
 	</prerequisites>
-
-	<scm>
-		<connection>scm:svn:https://svn.mi.seat.it/innovation/TreeReader/trunk</connection>
-		<developerConnection>scm:svn:https://svn.mi.seat.it/innovation/TreeReader/trunk</developerConnection>
-		<url>scm:svn:https://svn.mi.seat.it/innovation</url>
-	</scm>
-
-	<distributionManagement>
-		<repository>
-			<id>nexus.grosio.pgol.com</id>
-			<name>Starsolutions Release Repository</name>
-			<url>http://nexus.grosio.pgol.com/nexus/content/repositories/releases</url>
-		</repository>
-
-		<snapshotRepository>
-			<uniqueVersion>false</uniqueVersion>
-			<id>nexus.grosio.pgol.com</id>
-			<name>Starsolutions Snapshot Repository</name>
-			<url>http://nexus.grosio.pgol.com/nexus/content/repositories/snapshots</url>
-		</snapshotRepository>
-
-	</distributionManagement>
 
 	<repositories>
 
@@ -56,49 +35,6 @@
 			<id>theclue-releases</id>
 			<url>https://raw.github.com/theclue/theclue-maven-repo/master/releases</url>
 		</repository>
-
-		<repository>
-			<id>JBoss</id>
-			<name>JBoss Repository</name>
-			<layout>default</layout>
-			<url>http://repository.jboss.com/</url>
-		</repository>
-
-		<repository>
-			<id>jboss-public-repository-group</id>
-			<name>JBoss Public Maven Repository Group</name>
-			<url>https://repository.jboss.org/nexus/content/groups/public/</url>
-		</repository>
-
-		<repository>
-			<id>java1.net</id>
-			<name>java.net Maven Repository 1</name>
-			<url>http://download.java.net/maven/1</url>
-		</repository>
-
-		<repository>
-			<id>java2.net</id>
-			<name>java.net Maven Repository 2</name>
-			<url>http://download.java.net/maven/2</url>
-		</repository>
-
-		<repository>
-			<id>cedarsoft-thirdparty</id>
-			<url>http://maven.cedarsoft.com/content/repositories/thirdparty/</url>
-		</repository>
-
-		<repository>
-			<id>seat</id>
-			<name>Seatpgol Maven Repository</name>
-			<url>http://nexus.grosio.pgol.com/nexus/content/repositories/central/</url>
-		</repository>
-
-		<repository>
-			<id>seat2</id>
-			<name>Seatpgol Maven Repository 2</name>
-			<url>http://nexus.grosio.pgol.com/nexus/content/repositories/public/</url>
-		</repository>
-		
 		<repository>
 			<id>twitter4j.org</id>
 			<name>twitter4j.org Repository</name>
@@ -131,10 +67,10 @@
 			<version>0.2</version>
 		</dependency>
 	</dependencies>
-	
+
 	<build>
 		<plugins>
-		
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
@@ -148,7 +84,7 @@
 					</archive>
 				</configuration>
 			</plugin>
-			
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
@@ -167,7 +103,7 @@
 					</execution>
 				</executions>
 			</plugin>
-			
+
 			<plugin>
 				<artifactId>maven-antrun-plugin</artifactId>
 				<version>1.6</version>
@@ -193,7 +129,8 @@
 							<exportAntProperties>true</exportAntProperties>
 							<tasks>
 								<!-- add the ant tasks from ant-contrib -->
-								<taskdef resource="net/sf/antcontrib/antlib.xml" classpathref="maven.plugin.classpath" />
+								<taskdef resource="net/sf/antcontrib/antlib.xml"
+									classpathref="maven.plugin.classpath" />
 								<!-- ant task to copy component resource files -->
 								<copy todir="${project.build.directory}" overwrite="true">
 									<fileset dir="${basedir}/src/main/resources">
@@ -206,10 +143,12 @@
 								<!-- remove empty JAR -->
 								<if>
 									<not>
-										<available file="${project.build.sourceDirectory}" type="dir" />
+										<available file="${project.build.sourceDirectory}"
+											type="dir" />
 									</not>
 									<then>
-										<delete file="${project.build.directory}/${project.build.finalName}.jar" />
+										<delete
+											file="${project.build.directory}/${project.build.finalName}.jar" />
 									</then>
 								</if>
 								<!-- patch the component descriptor file -->
@@ -222,15 +161,18 @@
 										<var name="basename" unset="true" />
 										<var name="basename.strip" unset="true" />
 										<basename file="@{file}" property="basename" />
-										<basename file="@{file}" property="basename.strip" suffix=".jar" />
+										<basename file="@{file}" property="basename.strip"
+											suffix=".jar" />
 										<var name="filenames" value="${basename}" />
 										<var name="filenames.strip" value="${basename.strip}" />
-										<var name="import.clause" value="&lt;IMPORT MODULE=&quot;${filenames}&quot; NAME=&quot;${filenames.strip}&quot; REQUIRED=&quot;true&quot;/&gt;" />
+										<var name="import.clause"
+											value="&lt;IMPORT MODULE=&quot;${filenames}&quot; NAME=&quot;${filenames.strip}&quot; REQUIRED=&quot;true&quot;/&gt;" />
 										<var name="import.set" value="${import.clause}${line.separator}${import.set}" />
 									</sequential>
 								</for>
 								<replace file="${project.build.directory}/${project.name}_java.xml">
-									<replacefilter token="&lt;!-- TOSIMPORTS --&gt;" value="&lt;IMPORTS&gt;${line.separator}${import.set}${line.separator}&lt;/IMPORTS&gt;" />
+									<replacefilter token="&lt;!-- TOSIMPORTS --&gt;"
+										value="&lt;IMPORTS&gt;${line.separator}${import.set}${line.separator}&lt;/IMPORTS&gt;" />
 									<replacefilter token="$COMPONENT-AUTHOR$" value="${component-author}" />
 									<replacefilter token="$RELEASE-DATE$" value="${maven.build.timestamp}" />
 									<replacefilter token="$COMPONENT-VERSION$" value="${project.version}" />
@@ -250,7 +192,8 @@
 								<!-- copy component files to TOS custom components folder -->
 								<delete dir="${componentsFolder}/${project.name}" quiet="true" />
 								<mkdir dir="${componentsFolder}/${project.name}" />
-								<copy todir="${componentsFolder}/${project.name}" overwrite="true">
+								<copy todir="${componentsFolder}/${project.name}"
+									overwrite="true">
 									<fileset dir="${project.build.directory}">
 										<include name="${project.name}_java.xml" />
 										<include name="${project.name}_icon32.png" />
@@ -267,7 +210,7 @@
 					</execution>
 				</executions>
 			</plugin>
-			
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -285,7 +228,7 @@
 					</execution>
 				</executions>
 			</plugin>
-			
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-install-plugin</artifactId>
@@ -296,7 +239,7 @@
 					</execution>
 				</executions>
 			</plugin>
-			
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-release-plugin</artifactId>
@@ -307,7 +250,7 @@
 				</configuration>
 			</plugin>
 		</plugins>
-		
+
 		<resources>
 			<resource>
 				<directory>${basedir}/src/main/resources</directory>
