@@ -19,7 +19,7 @@ public class tJRISilentClientImpl extends Observable implements tJRIClient {
 
 	public TalendFlowBehaviour eval(String rCode) {
 		re.eval(rCode);
-		return new tJRIFlowBehaviour();		
+		return new tJRIFlowBehaviour(this);		
 	}
 
 	public void q() {
