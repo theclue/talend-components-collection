@@ -6,6 +6,7 @@ import java.util.Observable;
 import java.util.ResourceBundle;
 
 import org.gabrielebaldassarre.tcomponent.bridge.TalendFlowBehaviour;
+import org.rosuda.JRI.REXP;
 import org.rosuda.JRI.RMainLoopCallbacks;
 import org.rosuda.JRI.Rengine;
 
@@ -65,13 +66,26 @@ return null;
 
 	}
 	
-	public TalendFlowBehaviour eval(String rCode) {
+	public tJRIFlowBehaviour eval(String rCode) {
 		re.eval(rCode);
-		return new tJRIFlowBehaviour();		
+		return new tJRIFlowBehaviour(this);		
 	}
 
 	public void q() {
 		re.end();	
+	}
+
+	public void evaluateSymbol(tJRISymbol symbol) {
+		ResourceBundle rb = ResourceBundle.getBundle("tJRI", Locale.getDefault());
+		setChanged();
+		notifyObservers(new tJRILogger("USER_DEF_LOG", Thread.currentThread().getId(), "INFO", String.format(rb.getString("log.getsymbol"), symbol.getOutputName())));
+		symbol.evaluate(re);
+	}
+
+	public void notify(tJRILogger log) {
+		setChanged();
+		notifyObservers(log);
+		
 	}
 
 

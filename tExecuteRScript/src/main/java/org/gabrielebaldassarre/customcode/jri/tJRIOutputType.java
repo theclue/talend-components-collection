@@ -3,9 +3,7 @@ package org.gabrielebaldassarre.customcode.jri;
 import org.gabrielebaldassarre.tcomponent.bridge.TalendType;
 
 public enum tJRIOutputType {
-	BOOLEAN(TalendType.BOOLEAN),
 	DOUBLE(TalendType.DOUBLE),
-	FACTOR(TalendType.STRING),
 	INT(TalendType.INTEGER),
 	STRING(TalendType.STRING),
 	VECTOR(TalendType.BYTE_ARRAY);
