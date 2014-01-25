@@ -45,7 +45,7 @@ public class tJRIFlowBehaviour implements TalendFlowBehaviour {
 			loopSize = loopVector.size();
 			client.notify(new tJRILogger("USER_DEF_LOG", Thread.currentThread().getId(), "INFO", String.format(rb.getString("log.loopnumber"), loopVector.size())));
 		} else {
-			client.notify(new tJRILogger("USER_DEF_LOG", Thread.currentThread().getId(), "INFO", rb.getString("log.loopdefault")));
+			if(symbolMap.size() > 0) client.notify(new tJRILogger("USER_DEF_LOG", Thread.currentThread().getId(), "INFO", rb.getString("log.loopdefault")));
 		}
 
 		// Evaluate all symbols
@@ -160,6 +160,11 @@ public class tJRIFlowBehaviour implements TalendFlowBehaviour {
 
 	public tJRIFlowBehaviour loopVariable(String symbol){
 		this.loop = symbol;
+		return this;
+	}
+	
+	public tJRIFlowBehaviour loopVariable(){
+		this.loop = null;
 		return this;
 	}
 

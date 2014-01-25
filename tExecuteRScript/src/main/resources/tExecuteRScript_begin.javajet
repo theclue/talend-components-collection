@@ -9,8 +9,12 @@
 		org.talend.designer.codegen.config.CodeGeneratorArgument
 		org.talend.core.model.metadata.types.JavaTypesManager
 		org.talend.core.model.metadata.types.JavaType
-		java.util.List 
-    	java.util.Map		
+		org.talend.core.model.utils.NodeUtil
+		java.util.ArrayList
+		java.util.Map
+		java.util.List
+		java.util.HashMap
+    	java.lang.StringBuilder		
 	" 
 %>
 <% 
@@ -22,6 +26,8 @@
     	 * DEFINES          *
      	 ********************/
 
+     	List<IConnection> outMainConns = new ArrayList<IConnection>(); // outgoing main connections
+     	
      	List<IMetadataColumn> outMainColumns = null;
 
 		// Parameters
@@ -31,8 +37,20 @@
 		String rFile = ElementParameterParser.getValue(node,"__R_FILE__");
 		boolean rScript = ("true").equals(ElementParameterParser.getValue(node, "__R_SCRIPT__"));
 		
+		// Advanced parameters
+		
+		@SuppressWarnings("unchecked")
+		List<Map<String, String>> mapping = (List<Map<String,String>>)ElementParameterParser.getObjectValue(node,  "__MAPPING__");
+		String loopSymbol = ElementParameterParser.getValue(node,"__LOOP_SYMBOL__");
+		
 		// Log parameters
-		boolean send_to_logcatcher = ("true").equals(ElementParameterParser.getValue(node, "__SEND_TO_LOGCATCHER__"));		
+		boolean send_to_logcatcher = ("true").equals(ElementParameterParser.getValue(node, "__SEND_TO_LOGCATCHER__"));
+		
+		for(IConnection conn: node.getOutgoingConnections()){
+    		if(!conn.isActivate()) continue;
+    		IConnection cc = NodeUtil.getRealConnectionTypeBased(conn);
+    		outMainConns.add(cc);
+    	}		
 
 %>
 		/**
@@ -78,7 +96,68 @@
 		 org.gabrielebaldassarre.customcode.jri.tJRIClient client_<%=cid%> = factory_<%=cid%>.getClient();
 		 
 		 ((java.util.Observable) client_<%=cid%>).addObserver(jriLogger_<%=cid%>);
-		 		 
-		 client_<%=cid%>.eval(<%= rScript ? "\"source(" + rFile.replaceAll("\"", "'") + ")\"" : rCode%>);
 		 
-		 client_<%=cid%>.q();
+		 int nb_line_<%=cid%> = 0;
+		 		 
+		 org.gabrielebaldassarre.customcode.jri.tJRIFlowBehaviour outputSymbols_<%=cid%> = client_<%=cid%>.eval(<%= rScript ? "\"source(" + rFile.replaceAll("\"", "'") + ")\"" : rCode%>);
+			 
+		/**
+		 * TOS-bridge data structures
+		 * @see http://gabrielebaldassarre.com
+		 */
+		 
+		// data model initialization      
+		org.gabrielebaldassarre.tcomponent.bridge.TalendFlowController tcontroller_<%=cid%> = org.gabrielebaldassarre.tcomponent.bridge.TalendFlowController.getInstance();
+		org.gabrielebaldassarre.tcomponent.bridge.TalendFlowModel tmodel_<%=cid%> = tcontroller_<%=cid%>.getModel(new org.gabrielebaldassarre.tcomponent.bridge.TalendContext(globalMap));
+
+		// flows factory interface
+		org.gabrielebaldassarre.tcomponent.bridge.TalendFlowFactory tablefactory_<%=cid%> = tmodel_<%=cid%>.getFlowFactory();
+		        
+		// init needed data flows
+		org.gabrielebaldassarre.tcomponent.bridge.TalendFlow symbols_<%=cid%> = tablefactory_<%=cid%>.newFlow("R Symbols", null, false);
+
+<%
+
+if(outMainConns.size() > 0){
+
+		IConnection conn = outMainConns.get(0);
+		outMainColumns = conn.getMetadataTable().getListColumns();  
+	 
+  		Map<String,IMetadataColumn> columnsMap = new HashMap<String,IMetadataColumn>();
+  		for (IMetadataColumn col : outMainColumns) columnsMap.put(col.getLabel(),col);
+
+		StringBuilder listBuilder = new StringBuilder();
+		StringBuilder symbolBuilder = new StringBuilder();
+		
+		listBuilder.append(NL + "symbols_" + cid + NL);
+		
+		symbolBuilder.append(NL + "outputSymbols_" + cid + NL);
+		symbolBuilder.append(".loopVariable(" + loopSymbol  + ")" + NL);
+
+		for(Map<String, String> data : mapping){
+			String schemaColumn = data.get("SCHEMA_COLUMN");
+			String rSymbol = data.get("R_SYMBOL");
+			String rexp = data.get("REXP"); 
+			String type = columnsMap.get(schemaColumn).getTalendType();
+			
+			listBuilder.append(".addColumn(\"" + schemaColumn +"\", org.gabrielebaldassarre.tcomponent.bridge.TalendType.getInstanceFromTalendId(\"" + type + "\"))" + NL);
+			
+			symbolBuilder.append(".outputSymbol(symbols_" + cid + ".getColumn(\"" + schemaColumn + "\"), new org.gabrielebaldassarre.customcode.jri.tJRISymbol(" + rSymbol + ", org.gabrielebaldassarre.customcode.jri.tJRIOutputType." + rexp + "))" + NL);
+			}
+			
+		listBuilder.append(";" + NL);
+		
+		symbolBuilder.append(";" + NL);
+		
+		stringBuffer.append(listBuilder.toString());
+		stringBuffer.append(symbolBuilder.toString());
+		
+} // outmain.conn		
+
+%>	
+		outputSymbols_<%=cid%>.visit(symbols_<%=cid%>);
+		
+		org.gabrielebaldassarre.tcomponent.bridge.TalendRow[] symOutputStage_<%=cid%> = symbols_<%=cid%>.getRows();
+		for(int i_<%=cid%>=0; i_<%=cid%> < symOutputStage_<%=cid%>.length; i_<%=cid%>++){
+				
+			 

@@ -1,0 +1,72 @@
+<%@ jet 
+imports="
+org.talend.core.model.process.INode
+org.talend.core.model.process.ElementParameterParser
+org.talend.core.model.metadata.IMetadataColumn 
+org.talend.core.model.process.IConnection
+org.talend.designer.codegen.config.CodeGeneratorArgument
+org.talend.core.model.metadata.types.JavaTypesManager
+org.talend.core.model.utils.NodeUtil
+java.util.List
+java.util.ArrayList
+java.util.Map
+java.util.HashMap
+" 
+%>
+<% 
+CodeGeneratorArgument codeGenArgument = (CodeGeneratorArgument) argument;
+INode node = (INode)codeGenArgument.getArgument();
+String cid = node.getUniqueName();
+
+		/********************
+    	 * DEFINES          *
+     	 ********************/
+
+     	List<IConnection> outMainConns = new ArrayList<IConnection>(); // outgoing main connections
+
+     	List<IMetadataColumn> outMainColumns = null;
+     	
+     	// Parameters
+     	@SuppressWarnings("unchecked")
+		List<Map<String, String>> mapping = (List<Map<String,String>>)ElementParameterParser.getObjectValue(node,  "__MAPPING__");
+		
+    	for(IConnection conn: node.getOutgoingConnections()){
+    		if(!conn.isActivate()) continue;
+    		IConnection cc = NodeUtil.getRealConnectionTypeBased(conn);
+    		outMainConns.add(cc);
+    	}
+%>
+<%
+for (IConnection conn : outMainConns){ //2
+  
+  	outMainColumns = conn.getMetadataTable().getListColumns();  
+  	Map<String,IMetadataColumn> columnsMap = new HashMap<String,IMetadataColumn>();
+  	for (IMetadataColumn col : outMainColumns) columnsMap.put(col.getLabel(),col);
+  
+    stringBuffer.append(NL);
+    stringBuffer.append("/**" + NL);
+    stringBuffer.append(" * start of outgoing connection: " + conn.getName() + NL);
+    stringBuffer.append(" */" + NL);
+    stringBuffer.append(conn.getName() + " = new " + conn.getName() + "Struct();");
+
+	for(Map<String, String> data : mapping){
+		stringBuffer.append(NL);
+		stringBuffer.append("/* column: " + data.get("SCHEMA_COLUMN") + " */ ");
+		stringBuffer.append(NL);
+		//String typeToCast = JavaTypesManager.getTypeToGenerate(columnsMap.get(data.get("SCHEMA_COLUMN")).getTalendType(),columnsMap.get(data.get("SCHEMA_COLUMN")).isNullable());
+		String typeToCast = JavaTypesManager.getTypeToGenerate(columnsMap.get(data.get("SCHEMA_COLUMN")).getTalendType(),true);
+		
+		String toPrimitive = JavaTypesManager.isJavaPrimitiveType(columnsMap.get(data.get("SCHEMA_COLUMN")).getTalendType(),columnsMap.get(data.get("SCHEMA_COLUMN")).isNullable()) ? "." + JavaTypesManager.getTypeToGenerate(columnsMap.get(data.get("SCHEMA_COLUMN")).getTalendType(),false) + "Value()" : "";
+		stringBuffer.append(conn.getName() + "." + data.get("SCHEMA_COLUMN") + " = ((" + typeToCast + ") symOutputStage_" + cid + "[i_" + cid + "].getValue(\"" + data.get("SCHEMA_COLUMN") + "\"))" + toPrimitive + ";");
+		stringBuffer.append(NL);
+
+	}
+	
+	 stringBuffer.append("/**" + NL);
+    stringBuffer.append(" * end of outgoing connection: " + conn.getName() + NL);
+    stringBuffer.append(" */" + NL);
+    
+  }
+
+ %>
+nb_line_<%=cid%>++;

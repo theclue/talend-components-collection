@@ -10,3 +10,12 @@ INode node = (INode)codeGenArgument.getArgument();
 String cid = node.getUniqueName();
 
 %>
+
+}
+
+client_<%=cid%>.q();
+
+/**
+ * Updates to TOS global map
+ */ 
+globalMap.put("<%=cid %>_NB_LINE", nb_line_<%=cid%>);
