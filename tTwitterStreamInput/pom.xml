@@ -1,15 +1,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-
 	<modelVersion>4.0.0</modelVersion>
-
 	<groupId>org.gabrielebaldassarre.app</groupId>
 	<artifactId>tTwitterStreamInput</artifactId>
-	<version>1.0</version>
+	<version>1.1</version>
 
 	<name>tTwitterStreamInput</name>
 	<url>http://gabrielebaldassarre.com/talend/ttwitterstreaminput/</url>
-
 	<properties>
 		<skipTests>true</skipTests>
 		<component-author>Gabriele Baldassarre</component-author>
@@ -19,52 +16,35 @@
 		<componentsFolder>${user.home}/talend_components</componentsFolder>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
-
 	<prerequisites>
 		<maven>2.2.1</maven>
 	</prerequisites>
-
 	<repositories>
-
 		<repository>
 			<id>theclue-snapshots</id>
-			<url>https://raw.github.com/theclue/theclue-maven-repo/master/snapshots</url>
+			<url>https://s3.amazonaws.com/extras.gabrielebaldassarre.com/mavenrepo/snapshots</url>
 		</repository>
-
 		<repository>
 			<id>theclue-releases</id>
-			<url>https://raw.github.com/theclue/theclue-maven-repo/master/releases</url>
+			<url>https://s3.amazonaws.com/extras.gabrielebaldassarre.com/mavenrepo/release</url>
 		</repository>
-		<repository>
-			<id>twitter4j.org</id>
-			<name>twitter4j.org Repository</name>
-			<url>http://twitter4j.org/maven2</url>
-			<releases>
-				<enabled>true</enabled>
-			</releases>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-		</repository>
-
 	</repositories>
-
 	<dependencies>
 		<dependency>
 			<groupId>org.twitter4j</groupId>
 			<artifactId>twitter4j-core</artifactId>
-			<version>[3.0,)</version>
+			<version>[4.0,)</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.twitter4j</groupId>
 			<artifactId>twitter4j-stream</artifactId>
-			<version>[3.0,)</version>
+			<version>[4.0,)</version>
 		</dependency>
 		<dependency>
 			<groupId>org.gabrielebaldassarre</groupId>
 			<artifactId>talend-bridge-api</artifactId>
-			<version>0.2</version>
+			<version>[0.2,)</version>
 		</dependency>
 	</dependencies>
 
