@@ -26,7 +26,7 @@ cb_<%= cid %>.setOAuthConsumerKey(<%= consumer_key %>);
 cb_<%= cid %>.setOAuthConsumerSecret(<%= consumer_secret %>);
 cb_<%= cid %>.setOAuthAccessToken(<%= access_token %>);
 cb_<%= cid %>.setOAuthAccessTokenSecret(<%= access_token_secret %>);
-cb_<%= cid %>.setUseSSL(<%=use_ssl%>);
+
 
 /**
  * TODO: it's better to enable json ONLY if there are some json connection in the whole job
