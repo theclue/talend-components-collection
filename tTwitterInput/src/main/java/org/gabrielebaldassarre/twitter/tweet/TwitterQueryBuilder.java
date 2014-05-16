@@ -231,7 +231,7 @@ public class TwitterQueryBuilder{
 		}
 		
 		if(lang != null) query.lang(lang);
-		if(rt != null) query.resultType(rt.toString());
+		if(rt != null) query.resultType(rt.getNativeType());
 		if(since != null) query.since(since);
 		if(sinceId != null) query.sinceId(sinceId);
 		if(until != null) query.until(until);
