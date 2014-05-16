@@ -148,12 +148,7 @@ s_<%=cid%>
 		// init needed data flows
 		org.gabrielebaldassarre.tcomponent.bridge.TalendFlow queryResults_<%=cid%> = tablefactory_<%=cid%>.newFlow("Twitter Query Results", 0, false);
 		org.gabrielebaldassarre.tcomponent.bridge.TalendFlow tweets_<%=cid%> = tablefactory_<%=cid%>.newFlow("Tweets", <%=2*rpp%>, false);
-      
-      // Prepare columns for query results data flow
-		queryResults_<%=cid%>.addColumn("statusSet", org.gabrielebaldassarre.twitter.tweet.QueryResultField.STATUS_SET.getTalendType(), null, false)
-					.addColumn("hasNext", org.gabrielebaldassarre.twitter.tweet.QueryResultField.HAS_NEXT.getTalendType(), false, false)
-					.addColumn("nextQuery", org.gabrielebaldassarre.twitter.tweet.QueryResultField.NEXT_QUERY.getTalendType(), null, false);
-		
+      		
 		// Prepare columns for tweets details data flow
 <%
 if(outMainConns.size() > 0 || hasJsonConnections == true) stringBuffer.append(NL + "tweets_" + cid + NL); 
@@ -181,11 +176,7 @@ if(outMainConns.size() > 0 || hasJsonConnections == true) stringBuffer.append(";
 		
 		qrCrawl_<%=cid%>.addObserver(twitterLogger_<%=cid%>);
 		twCrawl_<%=cid%>.addObserver(twitterLogger_<%=cid%>);
-		
-	 qrCrawl_<%=cid%>	.setColumnLink(queryResults_<%=cid%>.getColumn("statusSet"), org.gabrielebaldassarre.twitter.tweet.QueryResultField.STATUS_SET)
-							.setColumnLink(queryResults_<%=cid%>.getColumn("hasNext"), org.gabrielebaldassarre.twitter.tweet.QueryResultField.HAS_NEXT)
-							.setColumnLink(queryResults_<%=cid%>.getColumn("nextQuery"), org.gabrielebaldassarre.twitter.tweet.QueryResultField.NEXT_QUERY);
-							
+									
 	// Link tweet details column to desired data
 <%
 	if(outMainConns.size() > 0 || hasJsonConnections == true) stringBuffer.append(NL + "twCrawl_" + cid + NL);
