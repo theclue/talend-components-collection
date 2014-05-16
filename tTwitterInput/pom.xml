@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.gabrielebaldassarre.app</groupId>
 	<artifactId>tTwitterInput</artifactId>
-	<version>1.1</version>
+	<version>1.2</version>
 	<name>tTwitterInput</name>
 	<url>http://gabrielebaldassarre.com/talend/ttwitterinput/</url>
 	<properties>
@@ -18,34 +18,23 @@
 	<repositories>
 		<repository>
 			<id>theclue-snapshots</id>
-			<url>https://raw.github.com/theclue/theclue-maven-repo/master/snapshots</url>
+			<url>https://s3.amazonaws.com/extras.gabrielebaldassarre.com/mavenrepo/snapshots</url>
 		</repository>
 		<repository>
 			<id>theclue-releases</id>
-			<url>https://raw.github.com/theclue/theclue-maven-repo/master/releases</url>
-		</repository>
-		<repository>
-			<id>twitter4j.org</id>
-			<name>twitter4j.org Repository</name>
-			<url>http://twitter4j.org/maven2</url>
-			<releases>
-				<enabled>true</enabled>
-			</releases>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
+			<url>https://s3.amazonaws.com/extras.gabrielebaldassarre.com/mavenrepo/release</url>
 		</repository>
 	</repositories>
 	<dependencies>
 		<dependency>
-			<groupId>org.twitter4j</groupId>
-			<artifactId>twitter4j-core</artifactId>
-			<version>[3.0,)</version>
-		</dependency>
+         <groupId>org.twitter4j</groupId>
+         <artifactId>twitter4j-core</artifactId>
+         <version>[4.0,)</version>
+      </dependency>
 		<dependency>
 			<groupId>org.gabrielebaldassarre</groupId>
 			<artifactId>talend-bridge-api</artifactId>
-			<version>0.2</version>
+			<version>[0.2,)</version>
 		</dependency>
 	</dependencies>
 	<build>
