@@ -16,13 +16,16 @@
  */
 package org.gabrielebaldassarre.twitter.tweet;
 
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
 import org.gabrielebaldassarre.tcomponent.bridge.TalendRow;
 
 import twitter4j.Query;
+import twitter4j.Status;
 
 /**
  * This class gives the possibility to iterate through a Twitter Query result set retrieved
@@ -48,26 +51,35 @@ public class QueryResultIterator implements Iterator<TalendRow> {
 	 * Check if the collection has a next value
 	 * 
 	 */
-	public boolean hasNext() {
-		return (t.getQuery() != null && t.alreadyRetrieved() < t.getLimit());
+	public boolean hasNext() {	
+		// Check against the limit of tweets
+		if(t.getQuery() == null || t.alreadyRetrieved() >= t.getLimit()) return false;
+		
+		// Perform the search and get the last page of results
+		t.search();
+		current = t.getTargetFlow().getRow(t.getTargetFlow().countRows() - 1);
+		List<Status> tweets = (List<Status>) current.getValue(t.getTargetFlow().getColumn("statusSet").getName());
+
+		// No tweets were found
+		if(tweets == null || tweets.size() == 0) return false;
+		
+		// Since the paging query won't work, manually construct the query for the second page
+		Query temp = t.getQuery();
+		temp.setMaxId((tweets.get(tweets.size() - 1)).getId() -1l);
+		t.query(temp);
+		
+		// If here, we have valid results
+		return true;
+		
 	}
 
 	/**
-	 * Get the next resultset available and prepare the visitor to issue another Twitter search, if available.
+	 * Get the next result set available
 	 * 
 	 * @return a reference to a {@link TalendRow} that stores current result set.
 	 */
 	public TalendRow next() {
-		ResourceBundle rb = ResourceBundle.getBundle("tTwitterInput", Locale.getDefault());
 
-		if(hasNext() == false) return null;
-
-		t.search();
-
-		current = t.getTargetFlow().getRow(0);
-		if(t.getColumnLinkType(QueryResultField.NEXT_QUERY) == null) throw new RuntimeException(rb.getString("exception.resultSetNeededColumn"));
-		t.query((Query)t.getTargetFlow().getRow(0).getValue(t.getColumnLinkType(QueryResultField.NEXT_QUERY).getName()));
-		
 		return current;
 	}
 
