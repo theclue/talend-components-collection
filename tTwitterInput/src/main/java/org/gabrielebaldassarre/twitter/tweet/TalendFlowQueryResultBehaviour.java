@@ -133,6 +133,7 @@ public class TalendFlowQueryResultBehaviour extends Observable implements Talend
 		TalendRow current;
 		List<Status> statusSet = null;
 		int howMany = 0;
+
 		try {
 
 			qr = client.search(q);
@@ -195,7 +196,7 @@ public class TalendFlowQueryResultBehaviour extends Observable implements Talend
 				
 				break;
 			case 420: /* Wait a safety-interval because of a rate limit */
-			case 400:
+			case 429:
 				setChanged();
 				notifyObservers(new TwitterLogger("USER_DEF_LOG", Thread.currentThread().getId(), "WARNING", String.format(Locale.getDefault(), rb.getString("log.rateLimit"), te.getRetryAfter())));
 
@@ -210,8 +211,7 @@ public class TalendFlowQueryResultBehaviour extends Observable implements Talend
 		}
 
 		this.retrieved += (statusSet != null ? statusSet.size() : 0);
-		setChanged();
-		notifyObservers(new TwitterLogger("USER_DEF_LOG", Thread.currentThread().getId(), "INFO", String.format(Locale.getDefault(), rb.getString("log.searchQuery"), qr.getRefreshURL())));
+
 		setChanged();
 		notifyObservers(new TwitterLogger("USER_DEF_LOG", Thread.currentThread().getId(), "INFO", String.format(Locale.getDefault(), rb.getString("log.searchStatus"), qr.getCompletedIn(),  howMany, alreadyRetrieved(), getLimit() - alreadyRetrieved())));
 		if(getLimit() - alreadyRetrieved() == 0 || qr.hasNext() == false){
@@ -227,16 +227,36 @@ public class TalendFlowQueryResultBehaviour extends Observable implements Talend
 	 * @param target the target flow to visit
 	 * @throws IllegalStateException if target is null or not valid
 	 */
-
 	public void visit(TalendFlow target) throws IllegalStateException {
 		ResourceBundle rb = ResourceBundle.getBundle("tTwitterInput", Locale.getDefault());
 		if(target == null) throw new IllegalArgumentException(rb.getString("exception.nullTargetFlow"));
 		
-		setChanged();
-		notifyObservers(new TwitterLogger("USER_DEF_LOG", Thread.currentThread().getId(), "DEBUG", String.format(rb.getString("log.visitStart"), target.getName())));
+		if(!target.hasColumns()) initFlow(target);
 		
 		this.target = target;
 		valid = true;
+	}
+
+	/**
+	 * Init the flow to be used to store the queryresult pages
+	 * 
+	 * @param target the target flow to init
+	 */
+	public void initFlow(TalendFlow target) {
+		
+		// Clean the target flow
+		target.truncate();
+		
+		// Prepare columns for query results data flow
+		if (!target.hasColumn("statusSet")){
+			target.addColumn("statusSet", QueryResultField.STATUS_SET.getTalendType(), null, false);
+			setColumnLink(target.getColumn("statusSet"),  QueryResultField.STATUS_SET);
+		}
+		if (!target.hasColumn("hasNext")) {
+			target.addColumn("hasNext", QueryResultField.HAS_NEXT.getTalendType(), false, false);
+			setColumnLink(target.getColumn("hasNext"),  QueryResultField.HAS_NEXT);
+		}
+		
 	}
 
 	/**
@@ -266,10 +286,9 @@ public class TalendFlowQueryResultBehaviour extends Observable implements Talend
 	public Query getQuery(){
 		return q;
 	}
-
-
+	
 	/**
-	 * Link a column of visiting {@link TalendFlow} to a properr type as described on {@link QueryResultField}
+	 * Link a column of visiting {@link TalendFlow} to a propert type as described on {@link QueryResultField}
 	 * 
 	 * @param column the column to associate with
 	 * @param data the type of output; if null, no link is estabilished
@@ -288,21 +307,6 @@ public class TalendFlowQueryResultBehaviour extends Observable implements Talend
 		
 		associations.put(column, data);
 		return this;
-	}
-
-	/**
-	 * Return the first column of the given type in visiting flow
-	 * 
-	 * @param data the type to get
-	 * @return the first column of the given type
-	 */
-	public TalendColumn getColumnLinkType(QueryResultField data){
-		Iterator<Entry<TalendColumn, QueryResultField>> i = associations.entrySet().iterator();
-		while (i.hasNext()) {
-			Map.Entry<TalendColumn, QueryResultField> row = (Map.Entry<TalendColumn, QueryResultField>)i.next();
-			if(QueryResultField.NEXT_QUERY.equals(row.getValue())) return row.getKey();
-		}
-		return null;
 	}
 
 }
