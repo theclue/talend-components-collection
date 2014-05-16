@@ -15,4 +15,3 @@ String cid = node.getUniqueName();
 String oauth_connection = ElementParameterParser.getValue(node, "__OAUTH_CONNECTION__"); 
 %>
 twitter4j.Twitter twitter_<%= cid %> = (twitter4j.Twitter)globalMap.get("twitter_<%= oauth_connection %>");
-twitter_<%= cid %>.shutdown();
