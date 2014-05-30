@@ -109,23 +109,23 @@ java.util.HashMap
 
 int nb_line_<%=cid%> = 0;
  
-org.gabrielebaldassarre.twitter.tweet.TwitterQueryBuilder s_<%= cid %> = new org.gabrielebaldassarre.twitter.tweet.TwitterQueryBuilder();
+org.gabrielebaldassarre.twitter.commodities.querybuilder.TwitterQueryBuilder s_<%= cid %> = new org.gabrielebaldassarre.twitter.commodities.querybuilder.TwitterQueryBuilder();
 s_<%=cid%>
 <% if(use_advanced == false){ %>
-	.logicalOperator(org.gabrielebaldassarre.twitter.tweet.TwitterQueryBuilderLogicalOperator.<%=logical%>)
+	.logicalOperator(org.gabrielebaldassarre.twitter.commodities.querybuilder.TwitterQueryBuilderLogicalOperator.<%=logical%>)
 	<%
 	for(Map<String, String> data : conditions){
-		stringBuffer.append(".condition(" + data.get("QUERY") + ", org.gabrielebaldassarre.twitter.tweet.TwitterQueryBuilderOperator." + data.get("OPERATOR") + ")");
+		stringBuffer.append(".condition(" + data.get("QUERY") + ", org.gabrielebaldassarre.twitter.commodities.querybuilder.TwitterQueryBuilderOperator." + data.get("OPERATOR") + ")");
  		stringBuffer.append(NL);
 	}
 %>
-	.attitude(org.gabrielebaldassarre.twitter.tweet.TwitterQueryBuilderAttitude.<%=attitude%>)
+	.attitude(org.gabrielebaldassarre.twitter.commodities.querybuilder.TwitterQueryBuilderAttitude.<%=attitude%>)
 	.filterLinks(<%=filter_links%>)
 	.filterQuestions(<%=filter_questions%>)
 <% } else { %>
 	.advancedQuery(<%=advanced_condition%>)
 <% } %>
-	<% if(!"MIXED".equals(result_type)){ %>.resultType(org.gabrielebaldassarre.twitter.tweet.TwitterQueryBuilderResultTypes.<%=result_type%>) <% } %>
+	<% if(!"MIXED".equals(result_type)){ %>.resultType(org.gabrielebaldassarre.twitter.commodities.querybuilder.TwitterQueryBuilderResultTypes.<%=result_type%>) <% } %>
 	<% if(language.length() > 0) { %>.lang(<%=language%>)<% } %>
 	<% if(max_id.length() > 0) { %>.maxId(<%=max_id%>)<% } %>
 	<% if(since.length() > 0) { %>.since(<%=since%>)<% } %>
