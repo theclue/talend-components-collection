@@ -1,0 +1,106 @@
+<%@ jet
+	imports="
+		org.talend.core.model.process.INode
+		org.talend.core.model.process.ElementParameterParser
+		org.talend.core.model.metadata.IMetadataTable
+		org.talend.core.model.metadata.IMetadataColumn
+		org.talend.core.model.process.IConnection
+		org.talend.core.model.process.IConnectionCategory
+		org.talend.designer.codegen.config.CodeGeneratorArgument
+		org.talend.core.model.metadata.types.JavaTypesManager
+		org.talend.core.model.metadata.types.JavaType
+		org.talend.core.model.process.EConnectionType
+		java.util.List
+    java.util.Map
+    java.util.HashMap
+		org.talend.core.model.utils.NodeUtil
+	"
+%>
+<% 
+    CodeGeneratorArgument codeGenArgument = (CodeGeneratorArgument) argument;
+    INode node = (INode)codeGenArgument.getArgument();
+    String cid = node.getUniqueName();
+
+    // Parameters
+    String node_id = ElementParameterParser.getValue(node, "__NODE_ID__");
+    String node_label = ElementParameterParser.getValue(node, "__NODE_LABEL__");
+
+    // Advanced parameters
+    String row_delimiter = ElementParameterParser.getValue(node, "__ROW_DELIMITER__");
+
+    // Incoming connection declaration
+    IConnection inMainCon = null;
+    List<IMetadataColumn> input_columns = null;
+    String outputConnName = null;
+
+    // Outgoing connections
+    List<? extends IConnection> out_connections = node.getOutgoingConnections();
+    IMetadataTable output_metadata = null;
+
+    // Hashmap for output
+    HashMap<String, IMetadataColumn> mappaColonne = new HashMap<String, IMetadataColumn>();
+
+
+List<IMetadataTable> metadatas = node.getMetadataList();
+if ((metadatas!=null)&&(metadatas.size()>0)) {//1
+    IMetadataTable metadata = metadatas.get(0);
+    if (metadata!=null) {//2
+
+        //get the input Main connection
+        List< ? extends IConnection> connsIn = node.getIncomingConnections();
+        for (IConnection conn : connsIn) {//3
+        	if (conn.getLineStyle().equals(EConnectionType.FLOW_MAIN) || conn.getLineStyle().equals(EConnectionType.FLOW_MERGE)) {
+        		inMainCon = NodeUtil.getRealConnectionTypeBased(conn);
+        	}
+            input_columns = metadata.getListColumns();
+            // buld hashmap for in/out intersection
+            for (int i = 0; i < input_columns.size(); i++){
+              IMetadataColumn incol = input_columns.get(i);
+              mappaColonne.put(incol.getLabel(), incol);
+            }
+        }//3
+
+        // return if component is disconnected
+        if(inMainCon == null)  {
+        	return "";
+        }
+
+    }//2
+}//1
+
+ /* Output connection available? */
+ if((out_connections.size() == 1) && (out_connections.get(0)).isActivate() && ((out_connections.get(0)).getLineStyle().equals(EConnectionType.FLOW_MAIN)||(out_connections.get(0)).getLineStyle().equals(EConnectionType.FLOW_MERGE))) {
+   outputConnName = (out_connections.get(0)).getName();
+   output_metadata = (out_connections.get(0)).getMetadataTable();
+   %>
+   <%=outputConnName %> = new <%=outputConnName %>Struct();
+   <% } %>
+/**
+ * File writing: node
+ */
+writer_<%=cid%>.write("\tnode [" + <%=row_delimiter%>);
+writer_<%=cid%>.write("\t\tid " + <%= inMainCon.getName() %>.<%= node_id %> + <%=row_delimiter%>);
+writer_<%=cid%>.write("\t\tlabel \"" + <%= inMainCon.getName() %>.<%= node_label %> + "\"" + <%=row_delimiter%>);
+<%
+for (int i = 0; i < input_columns.size(); i++){
+  IMetadataColumn column = input_columns.get(i);
+
+  if(output_metadata != null){ %>
+    <%=outputConnName %>.<%=column.getLabel() %> = <%= inMainCon.getName() %>.<%=column.getLabel() %>;
+  <% }
+
+  if((!column.getLabel().equals(node_id)) && (!column.getLabel().equals(node_label))) {
+    String ttg = JavaTypesManager.getTypeToGenerate(column.getTalendType(),column.isNullable());
+    boolean quote = (ttg.equals("String") || ttg.equals("List"));
+    boolean serialize = (ttg.equals("Object") || ttg.equals("List"));
+%>
+writer_<%=cid%>.write("\t\t<%= column.getLabel() %> <%= quote ? "\\\"" : "" %>" + <%= inMainCon.getName() %>.<%= column.getLabel() %><%= serialize ? ".toString()" : "" %> + "<%= quote ? "\\\"" : "" %>" + <%=row_delimiter%>);
+<% }
+}
+%>
+writer_<%=cid%>.write("\t]" + <%=row_delimiter%>);
+
+/* End file writing: node */
+
+nb_line_<%=cid%>++;
+nb_nodes_<%=cid%>++;

@@ -1,0 +1,255 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.gabrielebaldassarre.app</groupId>
+	<artifactId>tTwitterInput</artifactId>
+	<version>1.2</version>
+	<name>tTwitterInput</name>
+	<url>http://gabrielebaldassarre.com/talend/ttwitterinput/</url>
+	<properties>
+		<skipTests>true</skipTests>
+		<component-author>Gabriele Baldassarre</component-author>
+		<dependencyVersion>false</dependencyVersion>
+		<addMavenDescription>true</addMavenDescription>
+		<useSnapshot>true</useSnapshot>
+		<componentsFolder>${user.home}/talend_components</componentsFolder>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+	<repositories>
+		<repository>
+			<id>theclue-snapshots</id>
+			<url>https://s3.amazonaws.com/extras.gabrielebaldassarre.com/mavenrepo/snapshots</url>
+		</repository>
+		<repository>
+			<id>theclue-releases</id>
+			<url>https://s3.amazonaws.com/extras.gabrielebaldassarre.com/mavenrepo/release</url>
+		</repository>
+	</repositories>
+	<dependencies>
+		<dependency>
+			<groupId>org.twitter4j</groupId>
+			<artifactId>twitter4j-core</artifactId>
+			<version>[4.0,)</version>
+		</dependency>
+		<dependency>
+			<groupId>org.gabrielebaldassarre</groupId>
+			<artifactId>twitter-commodities</artifactId>
+			<version>[0.2,)</version>
+		</dependency>
+		<dependency>
+			<groupId>org.gabrielebaldassarre</groupId>
+			<artifactId>talend-bridge-api</artifactId>
+			<version>[0.2,)</version>
+		</dependency>
+	</dependencies>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.4</version>
+				<configuration>
+					<forceCreation>false</forceCreation>
+					<skipIfEmpty>true</skipIfEmpty>
+					<useDefaultManifestFile>false</useDefaultManifestFile>
+					<archive>
+						<addMavenDescriptor>${addMavenDescription}</addMavenDescriptor>
+					</archive>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>2.5.1</version>
+				<executions>
+					<execution>
+						<id>copy-dependencies</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}</outputDirectory>
+							<stripVersion>${dependencyVersion}</stripVersion>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.6</version>
+				<dependencies>
+					<dependency>
+						<groupId>ant-contrib</groupId>
+						<artifactId>ant-contrib</artifactId>
+						<version>1.0b3</version>
+						<exclusions>
+							<exclusion>
+								<groupId>ant</groupId>
+								<artifactId>ant</artifactId>
+							</exclusion>
+						</exclusions>
+					</dependency>
+
+				</dependencies>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<id>copy-resources</id>
+						<configuration>
+							<exportAntProperties>true</exportAntProperties>
+							<tasks>
+								<!-- add the ant tasks from ant-contrib -->
+								<taskdef resource="net/sf/antcontrib/antlib.xml"
+									classpathref="maven.plugin.classpath" />
+								<!-- ant task to copy component resource files -->
+								<copy todir="${project.build.directory}" overwrite="true">
+									<fileset dir="${basedir}/src/main/resources">
+										<include name="${project.name}_java.xml" />
+										<include name="${project.name}_icon32.png" />
+										<include name="${project.name}_messages*.properties" />
+										<include name="**/*.javajet" />
+									</fileset>
+								</copy>
+								<!-- remove empty JAR -->
+								<if>
+									<not>
+										<available file="${project.build.sourceDirectory}"
+											type="dir" />
+									</not>
+									<then>
+										<delete
+											file="${project.build.directory}/${project.build.finalName}.jar" />
+									</then>
+								</if>
+								<!-- patch the component descriptor file -->
+								<var name="import.set" value="" />
+								<for param="file">
+									<path>
+										<fileset dir="${project.build.directory}" includes="*.jar" />
+									</path>
+									<sequential>
+										<var name="basename" unset="true" />
+										<var name="basename.strip" unset="true" />
+										<basename file="@{file}" property="basename" />
+										<basename file="@{file}" property="basename.strip"
+											suffix=".jar" />
+										<var name="filenames" value="${basename}" />
+										<var name="filenames.strip" value="${basename.strip}" />
+										<var name="import.clause"
+											value='&lt;IMPORT MODULE="${filenames}" NAME="${filenames.strip}" REQUIRED="true"/&gt;' />
+										<var name="import.set" value="${import.clause}${line.separator}${import.set}" />
+									</sequential>
+								</for>
+								<replace file="${project.build.directory}/${project.name}_java.xml">
+									<replacefilter token="&lt;!-- TOSIMPORTS --&gt;"
+										value="&lt;IMPORTS&gt;${line.separator}${import.set}${line.separator}&lt;/IMPORTS&gt;" />
+									<replacefilter token="$COMPONENT-AUTHOR$" value="${component-author}" />
+									<replacefilter token="$RELEASE-DATE$" value="${maven.build.timestamp}" />
+									<replacefilter token="$COMPONENT-VERSION$" value="${project.version}" />
+									<replacefilter token="$COMPONENT-NAME$" value="${project.name}" />
+								</replace>
+							</tasks>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+					<execution>
+						<phase>install</phase>
+						<id>copy-component</id>
+						<configuration>
+							<tasks>
+								<!-- copy component files to TOS custom components folder -->
+								<delete dir="${componentsFolder}/${project.name}" quiet="true" />
+								<mkdir dir="${componentsFolder}/${project.name}" />
+								<copy todir="${componentsFolder}/${project.name}"
+									overwrite="true">
+									<fileset dir="${project.build.directory}">
+										<include name="${project.name}_java.xml" />
+										<include name="${project.name}_icon32.png" />
+										<include name="${project.name}_messages*.properties" />
+										<include name="*.javajet" />
+										<include name="*.jar" />
+									</fileset>
+								</copy>
+							</tasks>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.3.2</version>
+				<executions>
+					<execution>
+						<id>default-testCompile</id>
+						<phase>test-compile</phase>
+						<goals>
+							<goal>testCompile</goal>
+						</goals>
+						<configuration>
+							<skip>true</skip>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-install-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>default-install</id>
+						<phase>none</phase>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+		<resources>
+			<resource>
+				<directory>${basedir}/src/main/resources</directory>
+				<excludes>
+					<exclude>${project.name}_icon32.png</exclude>
+					<exclude>${project.name}_messages*.properties</exclude>
+					<exclude>${project.name}_java.xml</exclude>
+					<exclude>**/*.javajet</exclude>
+					<exclude>**/*.patch</exclude>
+					<exclude>${project.name}_java.xml</exclude>
+				</excludes>
+			</resource>
+		</resources>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<!-- make valid for M2E cfr. http://stackoverflow.com/questions/8706017/maven-dependency-plugin-goals-copy-dependencies-unpack-is-not-supported-b/10208808#10208808 -->
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>org.apache.maven.plugins</groupId>
+										<artifactId>maven-dependency-plugin</artifactId>
+										<versionRange>[2.0,)</versionRange>
+										<goals>
+											<goal>copy-dependencies</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<execute />
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+</project>

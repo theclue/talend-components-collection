@@ -1,0 +1,81 @@
+<%@ jet 
+	imports="
+		org.talend.core.model.process.INode 
+		org.talend.core.model.process.ElementParameterParser 
+		org.talend.core.model.metadata.IMetadataTable 
+		org.talend.core.model.metadata.IMetadataColumn 
+		org.talend.core.model.process.IConnection
+		org.talend.core.model.process.IConnectionCategory
+		org.talend.designer.codegen.config.CodeGeneratorArgument
+		org.talend.core.model.metadata.types.JavaTypesManager
+		org.talend.core.model.metadata.types.JavaType
+		org.talend.core.model.process.EConnectionType
+		java.util.List
+		java.util.Map
+		org.talend.core.model.utils.NodeUtil
+	"
+%>
+<% 
+    CodeGeneratorArgument codeGenArgument = (CodeGeneratorArgument) argument;
+    INode node = (INode)codeGenArgument.getArgument();
+    String cid = node.getUniqueName();
+
+    // Parameters
+    boolean include_edges = ("true").equals(ElementParameterParser.getValue(node, "__INCLUDE_EDGES__"));
+    String gml_file = ElementParameterParser.getValue(node, "__GML_FILE__");
+    String graph_type = ElementParameterParser.getValue(node, "__GRAPH_TYPE__");
+
+    // Advanced parameters
+    String graph_label = ElementParameterParser.getValue(node, "__GRAPH_LABEL__");
+    String author = ElementParameterParser.getValue(node, "__AUTHOR__");
+    String encoding_type = "\"" + (ElementParameterParser.getValue(node, "__ENCODING_TYPE__").replaceAll(" ", "")) + "\"";
+    String row_delimiter = ElementParameterParser.getValue(node, "__ROW_DELIMITER__");
+
+    List<IMetadataTable> metadatas = node.getMetadataList();
+if ((metadatas!=null)&&(metadatas.size()>0)) {//1
+    IMetadataTable metadata = metadatas.get(0);
+    String lookupConName = "";
+    if (metadata!=null) {//2
+
+        String hashName = "";
+
+        //get the input Main and Lookup connection
+        IConnection inMainCon = null;
+        IConnection inRefCon = null;
+        List< ? extends IConnection> connsIn = node.getIncomingConnections();
+        for (IConnection conn : connsIn) {//3
+        	if (conn.getLineStyle().equals(EConnectionType.FLOW_MAIN) || conn.getLineStyle().equals(EConnectionType.FLOW_MERGE)) {
+        		inMainCon = NodeUtil.getRealConnectionTypeBased(conn);
+        	}
+        	else if(conn.getLineStyle().equals(EConnectionType.FLOW_REF))
+        	{
+        		inRefCon = conn;
+        		lookupConName = inRefCon.getName();
+        		hashName = lookupConName;
+        		if (conn.getSource().getComponent().isHashComponent()) {
+        			hashName = ElementParameterParser.getValue(conn.getSource(), "__LIST__");
+        			lookupConName = "row2";
+        		}
+        	}
+        }//3
+
+        if((inMainCon == null) || ((include_edges == true) && (inRefCon == null))) {
+        	return "";
+        }
+        %>
+
+        int nb_line_<%=cid%> = 0;
+        int nb_nodes_<%=cid%> = 0;
+        int nb_edges_<%=cid%> = 0;
+
+        java.io.OutputStream outputStream_<%=cid%> = new java.io.FileOutputStream(<%= gml_file %>);
+        java.io.Writer writer_<%=cid%> = new java.io.OutputStreamWriter(outputStream_<%=cid%>, <%= encoding_type %>);
+
+        writer_<%=cid%>.write("graph [" + <%=row_delimiter%>);
+        <% if (graph_label.length()>0) { %>writer_<%=cid%>.write("\tlabel \"" + <%=graph_label%> + "\"" + <%=row_delimiter%>);<% } %>
+        <% if (author.length()>0) { %>writer_<%=cid%>.write("\tcreator \"" + <%=author%> + "\"" + <%=row_delimiter%>);<% } %>
+        writer_<%=cid%>.write("\tdirected <%=graph_type%>" + <%=row_delimiter%>);
+        <%
+    }//2
+}//1
+%>

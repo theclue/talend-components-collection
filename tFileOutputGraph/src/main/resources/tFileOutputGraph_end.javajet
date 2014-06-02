@@ -1,0 +1,86 @@
+<%@ jet
+	imports="
+		org.talend.core.model.process.INode
+		org.talend.core.model.process.ElementParameterParser
+		org.talend.core.model.metadata.IMetadataTable
+		org.talend.core.model.metadata.IMetadataColumn
+		org.talend.core.model.process.IConnection
+		org.talend.core.model.process.IConnectionCategory
+		org.talend.designer.codegen.config.CodeGeneratorArgument
+		org.talend.core.model.metadata.types.JavaTypesManager
+		org.talend.core.model.metadata.types.JavaType
+		org.talend.core.model.process.EConnectionType
+		java.util.List
+		java.util.Map
+		org.talend.core.model.utils.NodeUtil
+	"
+%>
+<%
+    CodeGeneratorArgument codeGenArgument = (CodeGeneratorArgument) argument;
+    INode node = (INode)codeGenArgument.getArgument();
+    String cid = node.getUniqueName();
+
+    String lookupConName = null;
+    String hashName = "";
+
+    // Parameters
+    boolean include_edges = ("true").equals(ElementParameterParser.getValue(node, "__INCLUDE_EDGES__"));
+    boolean have_weight = ("true").equals(ElementParameterParser.getValue(node, "__HAVE_WEIGHT__"));
+    boolean have_label = ("true").equals(ElementParameterParser.getValue(node, "__HAVE_LABEL__"));
+
+    // Advanced parameters
+    String row_delimiter = ElementParameterParser.getValue(node, "__ROW_DELIMITER__");
+
+        //get the input Lookup connection
+        IConnection inMainCon = null;
+        IConnection inRefCon = null;
+        List< ? extends IConnection> connsIn = node.getIncomingConnections();
+        for (IConnection conn : connsIn) {//3
+        	if(conn.getLineStyle().equals(EConnectionType.FLOW_REF))
+        	{
+        		inRefCon = conn;
+        		lookupConName = inRefCon.getName();
+        		hashName = lookupConName;
+        		if (conn.getSource().getComponent().isHashComponent()) {
+        			hashName = ElementParameterParser.getValue(conn.getSource(), "__LIST__");
+        			lookupConName = "row2";
+        		}
+        	}
+        }//3
+
+    // Edge parameters
+    String edge_source = (ElementParameterParser.getValue(node, "__EDGE_SOURCE__")).replaceFirst(lookupConName + ".", "");
+    String edge_target = (ElementParameterParser.getValue(node, "__EDGE_TARGET__")).replaceFirst(lookupConName + ".", "");
+    String edge_weight = (ElementParameterParser.getValue(node, "__EDGE_WEIGHT__")).replaceFirst(lookupConName + ".", "");
+    String edge_label = (ElementParameterParser.getValue(node, "__EDGE_LABEL__")).replaceFirst(lookupConName + ".", "");
+
+
+if(include_edges == true) { //include-edges
+%>
+/**
+ * File writing: node
+ */
+final java.util.Map<<%=lookupConName %>Struct, <%=lookupConName %>Struct> tHash_<%=cid %> = (java.util.Map<<%=lookupConName %>Struct, <%=lookupConName %>Struct>) globalMap.get("tHash_<%=hashName %>");
+
+java.util.Iterator edges_<%= cid %> = tHash_<%=cid %>.entrySet().iterator();
+while (edges_<%= cid %>.hasNext()) {
+    java.util.Map.Entry entry_<%= cid %> = (java.util.Map.Entry) edges_<%= cid %>.next();
+    writer_<%=cid%>.write("\tedge [" + <%=row_delimiter%>);
+    writer_<%=cid%>.write("\t\tsource " + ((<%=lookupConName %>Struct)entry_<%= cid %>.getValue()).<%= edge_source %> + <%=row_delimiter%>);
+    writer_<%=cid%>.write("\t\ttarget " + ((<%=lookupConName %>Struct)entry_<%= cid %>.getValue()).<%= edge_target %> + <%=row_delimiter%>);
+    <% if(have_label == true) { %>writer_<%=cid%>.write("\t\tlabel \"" + ((<%=lookupConName %>Struct)entry_<%= cid %>.getValue()).<%= edge_label %> + "\"" + <%=row_delimiter%>); <% } %>
+    <% if(have_weight == true) { %>writer_<%=cid%>.write("\t\tweight " + ((<%=lookupConName %>Struct)entry_<%= cid %>.getValue()).<%= edge_weight %> + <%=row_delimiter%>); <% } %>
+    writer_<%=cid%>.write("\t]" + <%=row_delimiter%>);
+    nb_edges_<%=cid%>++;
+}
+/* End file writing: node */
+<% } //end-include-edges
+%>
+writer_<%=cid%>.write("]");
+writer_<%=cid%>.close();
+outputStream_<%=cid%>.close();
+
+globalMap.put("<%=cid %>_NB_LINE", nb_line_<%=cid%>);
+globalMap.put("<%=cid %>_NB_NODES", nb_nodes_<%=cid%>);
+globalMap.put("<%=cid %>_NB_EDGES", nb_edges_<%=cid%>);
+
