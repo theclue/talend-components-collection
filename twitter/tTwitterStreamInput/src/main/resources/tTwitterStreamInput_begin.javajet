@@ -17,6 +17,27 @@ java.util.HashMap
 		CodeGeneratorArgument codeGenArgument = (CodeGeneratorArgument) argument;
 		INode node = (INode)codeGenArgument.getArgument();
 		String cid = node.getUniqueName();
+		
+		 
+		String TwitterLogger = "org.gabrielebaldassarre.twitter.commodities.logger.TwitterLogger";
+
+		String TalendFlowController = "org.gabrielebaldassarre.tcomponent.bridge.TalendFlowController";
+		String TalendFlowModel = "org.gabrielebaldassarre.tcomponent.bridge.TalendFlowModel";
+		String TalendContext = "org.gabrielebaldassarre.tcomponent.bridge.TalendContext";
+		String TalendFlowFactory = "org.gabrielebaldassarre.tcomponent.bridge.TalendFlowFactory";
+		String TalendFlow = "org.gabrielebaldassarre.tcomponent.bridge.TalendFlow";
+		String TalendType = "org.gabrielebaldassarre.tcomponent.bridge.TalendType";
+		String TalendFlowQueryResultBehaviour = "org.gabrielebaldassarre.twitter.tweet.TalendFlowQueryResultBehaviour";
+		String TalendFlowTweetBehaviour = "org.gabrielebaldassarre.twitter.tweet.TalendFlowTweetBehaviour";
+		String TweetField = "org.gabrielebaldassarre.twitter.commodities.tweet.TweetField";
+		String TalendRow = "org.gabrielebaldassarre.tcomponent.bridge.TalendRow";
+		
+		String TwitterQueryBuilderLogicalOperator = "org.gabrielebaldassarre.twitter.commodities.querybuilder.TwitterQueryBuilderLogicalOperator";  		
+
+		String QueryResultField = "org.gabrielebaldassarre.twitter.commodities.tweet.QueryResultField";	
+		String TalendRowTweetBehaviour = "org.gabrielebaldassarre.twitter.stream.tweet.TalendRowTweetBehaviour";
+		
+		String MyStatusListener = "org.gabrielebaldassarre.twitter.stream.tweet.listener.MyStatusListener";
 
     	/********************
     	 * DEFINES          *
@@ -82,21 +103,22 @@ java.util.HashMap
 
 			   public void update(java.util.Observable obs, Object obj)
 			   {
+			   <%=TwitterLogger%> log = (<%=TwitterLogger%>)obj;			   
 			   <% if(send_to_logcatcher == true) {
 						if (node.getProcess().getNodesOfType("tLogCatcher").size() > 0) {
 							@SuppressWarnings("unchecked")
 							List<INode> logCatchers = (List<INode>)node.getProcess().getNodesOfType("tLogCatcher");
 							for (INode logCatcher : logCatchers) {
 								if (("true").equals(ElementParameterParser.getValue(logCatcher, "__CATCH_TWARN__"))) { %>
-									<%=logCatcher.getUniqueName() %>.addMessage("tWarn", "<%=cid %>", 4, ((org.gabrielebaldassarre.twitter.stream.tweet.TwitterLogger)obj).getMessage(), 210);
+									<%=logCatcher.getUniqueName() %>.addMessage("tWarn", "<%=cid %>", 4, log.getMessage(), 210);
 									<%=logCatcher.getDesignSubjobStartNode().getUniqueName() %>Process(globalMap);
 								<%
 								}
 							}
 						}
 		 			} %>
-			   	resumeUtil.addLog(((org.gabrielebaldassarre.twitter.stream.tweet.TwitterLogger)obj).getCategory(), "NODE:<%=cid %>", "", ((org.gabrielebaldassarre.twitter.stream.tweet.TwitterLogger)obj).getThreadId() + "", ((org.gabrielebaldassarre.twitter.stream.tweet.TwitterLogger)obj).getSeverity(),"",((org.gabrielebaldassarre.twitter.stream.tweet.TwitterLogger)obj).getMessage(),"", "");
-				   System.err.println(((org.gabrielebaldassarre.twitter.stream.tweet.TwitterLogger)obj).getMessage());
+			   	resumeUtil.addLog(log.getCategory(), "NODE:<%=cid %>", "", log.getThreadId() + "", log.getSeverity(),"", log.getMessage(),"", "");
+				   System.err.println(log.getMessage());
 			}
 		}
 		
@@ -160,20 +182,20 @@ java.util.HashMap
 		 */
 		 
 		// data model initialization      
-		org.gabrielebaldassarre.tcomponent.bridge.TalendFlowController tcontroller_<%=cid%> = org.gabrielebaldassarre.tcomponent.bridge.TalendFlowController.getInstance();
-		org.gabrielebaldassarre.tcomponent.bridge.TalendFlowModel tmodel_<%=cid%> = tcontroller_<%=cid%>.getModel(new org.gabrielebaldassarre.tcomponent.bridge.TalendContext(globalMap));
+		<%=TalendFlowController%> tcontroller_<%=cid%> = <%=TalendFlowController%>.getInstance();
+		<%=TalendFlowModel%> tmodel_<%=cid%> = tcontroller_<%=cid%>.getModel(new <%=TalendContext%>(globalMap));
 
 		// flows factory interface
-		org.gabrielebaldassarre.tcomponent.bridge.TalendFlowFactory tablefactory_<%=cid%> = tmodel_<%=cid%>.getFlowFactory();
+		<%=TalendFlowFactory%> tablefactory_<%=cid%> = tmodel_<%=cid%>.getFlowFactory();
 		        
 		// init needed data flows
-		org.gabrielebaldassarre.tcomponent.bridge.TalendFlow queryResults_<%=cid%> = tablefactory_<%=cid%>.newFlow("Twitter Query Results", 0, false);
-		org.gabrielebaldassarre.tcomponent.bridge.TalendFlow tweets_<%=cid%> = tablefactory_<%=cid%>.newFlow("Tweets", <%=2*rpp%>, false);
+		<%=TalendFlow%> queryResults_<%=cid%> = tablefactory_<%=cid%>.newFlow("Twitter Query Results", 0, false);
+		<%=TalendFlow%> tweets_<%=cid%> = tablefactory_<%=cid%>.newFlow("Tweets", <%=2*rpp%>, false);
       
       // Prepare columns for query results data flow
-		queryResults_<%=cid%>.addColumn("statusSet", org.gabrielebaldassarre.twitter.stream.tweet.QueryResultField.STATUS_SET.getTalendType(), null, false)
-					.addColumn("hasNext", org.gabrielebaldassarre.twitter.stream.tweet.QueryResultField.HAS_NEXT.getTalendType(), false, false)
-					.addColumn("nextQuery", org.gabrielebaldassarre.twitter.stream.tweet.QueryResultField.NEXT_QUERY.getTalendType(), null, false);
+		queryResults_<%=cid%>.addColumn("statusSet", <%=QueryResultField%>.STATUS_SET.getTalendType(), null, false)
+					.addColumn("hasNext", <%=QueryResultField%>.HAS_NEXT.getTalendType(), false, false)
+					.addColumn("nextQuery", <%=.QueryResultField%>.NEXT_QUERY.getTalendType(), null, false);
 		
 		// Prepare columns for tweets details data flow
 <%
@@ -190,19 +212,19 @@ if(outMainConns.size() > 0 || hasJsonConnections == true) stringBuffer.append(NL
 		String schemaColumn = data.get("SCHEMA_COLUMN"); 
 		String type = columnsMap.get(schemaColumn).getTalendType();
 
-		stringBuffer.append(".addColumn(\"" + schemaColumn +"\", org.gabrielebaldassarre.tcomponent.bridge.TalendType.getInstanceFromTalendId(\"" + type + "\"))" + NL);
+		stringBuffer.append(".addColumn(\"" + schemaColumn +"\", " + TalendType + ".getInstanceFromTalendId(\"" + type + "\"))" + NL);
 	}
 }
-if(hasJsonConnections == true) stringBuffer.append(".addColumn(\"jsonString\", org.gabrielebaldassarre.tcomponent.bridge.TalendType.getInstanceFromTalendId(\"id_String\"))" + NL);
+if(hasJsonConnections == true) stringBuffer.append(".addColumn(\"jsonString\", " + TalendType + ".getInstanceFromTalendId(\"id_String\"))" + NL);
 if(outMainConns.size() > 0 || hasJsonConnections == true) stringBuffer.append(";" + NL);	
 %>
 		// Prepare visitors
 
-		org.gabrielebaldassarre.twitter.stream.tweet.TalendRowTweetBehaviour trCrawl_<%=cid%> = new org.gabrielebaldassarre.twitter.stream.tweet.TalendRowTweetBehaviour((twitter4j.TwitterStream)globalMap.get("twitter_<%= oauth_connection %>"), <%=entitySeparator%>, <%=entityPrefix%>, org.gabrielebaldassarre.twitter.stream.tweet.TwitterLogicalOperator.<%=logical%>);
+		<%=TalendRowTweetBehaviour%> trCrawl_<%=cid%> = new <%=TalendRowTweetBehaviour%>((twitter4j.TwitterBase)globalMap.get("twitter_<%= oauth_connection %>"), <%=entitySeparator%>, <%=entityPrefix%>, <%=TwitterQueryBuilderLogicalOperator%>.<%=logical%>);
 		trCrawl_<%=cid%>.addObserver(twitterLogger_<%=cid%>);
 		
 		//add Listener
-		org.gabrielebaldassarre.twitter.stream.tweet.listener.MyStatusListener statusListener_<%=cid%> = new org.gabrielebaldassarre.twitter.stream.tweet.listener.MyStatusListener();
+		<%=MyStatusListener%> statusListener_<%=cid%> = new <%=MyStatusListener%>();
 		statusListener_<%=cid%>.addObserver(trCrawl_<%=cid%>);
 		trCrawl_<%=cid%>.addListener(statusListener_<%=cid%>);
 		
@@ -223,10 +245,10 @@ if(outMainConns.size() > 0 || hasJsonConnections == true) stringBuffer.append(";
 		String schemaColumn = data.get("SCHEMA_COLUMN"); 
 		String operation = data.get("OPERATION"); 
 
-		stringBuffer.append(".setColumnLink(tweets_" + cid + ".getColumn(\"" + schemaColumn + "\"), org.gabrielebaldassarre.twitter.stream.tweet.TweetField." + operation + ")" + NL);
+		stringBuffer.append(".setColumnLink(tweets_" + cid + ".getColumn(\"" + schemaColumn + "\"), " + TweetField + "." + operation + ")" + NL);
 	}
 }
- if(hasJsonConnections == true) stringBuffer.append(".setColumnLink(tweets_" + cid + ".getColumn(\"jsonString\"), org.gabrielebaldassarre.twitter.stream.tweet.TweetField.JSON)" + NL);
+ if(hasJsonConnections == true) stringBuffer.append(".setColumnLink(tweets_" + cid + ".getColumn(\"jsonString\"), " + TweetField + ".JSON)" + NL);
 if(outMainConns.size() > 0 || hasJsonConnections == true) stringBuffer.append(";" + NL);
  %>
  
@@ -234,4 +256,4 @@ if(outMainConns.size() > 0 || hasJsonConnections == true) stringBuffer.append(";
  		tweets_<%=cid%>.truncate();
 		trCrawl_<%=cid%>.visit(tweets_<%=cid%>);
 		
-		for(org.gabrielebaldassarre.tcomponent.bridge.TalendRow singleTweet_<%=cid%> : java.util.Arrays.asList(tweets_<%=cid%>.getRows())){						
+		for(<%=TalendRow%> singleTweet_<%=cid%> : java.util.Arrays.asList(tweets_<%=cid%>.getRows())){						

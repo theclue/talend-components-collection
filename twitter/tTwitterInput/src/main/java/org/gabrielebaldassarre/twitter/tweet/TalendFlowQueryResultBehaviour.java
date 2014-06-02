@@ -33,6 +33,7 @@ import org.gabrielebaldassarre.tcomponent.bridge.TalendFlowBehaviour;
 import org.gabrielebaldassarre.tcomponent.bridge.TalendRow;
 import org.gabrielebaldassarre.tcomponent.bridge.TalendRowFactory;
 import org.gabrielebaldassarre.twitter.commodities.logger.TwitterLogger;
+import org.gabrielebaldassarre.twitter.commodities.tweet.QueryResultField;
 
 import twitter4j.Query;
 import twitter4j.Twitter;
