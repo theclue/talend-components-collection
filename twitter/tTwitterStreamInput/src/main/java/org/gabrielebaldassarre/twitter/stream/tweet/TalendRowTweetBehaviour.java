@@ -80,7 +80,7 @@ public class TalendRowTweetBehaviour extends Observable implements TalendFlowBeh
 	 * 
 	 * @param entitiesSeparator the substring to use as separator for serialized entity list, ie '|' or ','
 	 * @param includeHash true if you prefer to have any entity to be prefixed by its reserver character, ie '#' or '@'
-	 * @param limit the maximum number of tweets to ask for
+	 * @param twitterLogicalOperator logical relationship between keywords
 	 */
 	public TalendRowTweetBehaviour(TwitterBase client, String entitiesSeparator, boolean includeHash, TwitterQueryBuilderLogicalOperator twitterLogicalOperator) {
 
@@ -105,6 +105,7 @@ public class TalendRowTweetBehaviour extends Observable implements TalendFlowBeh
 
 	public void addListener(StatusListener statusListener) {
 		this.client.addListener(statusListener);
+
 	}
 
 	public void addFilter(FilterQuery filterQuery) {
@@ -571,7 +572,7 @@ public class TalendRowTweetBehaviour extends Observable implements TalendFlowBeh
 	}
 
 	/**
-	 * Se the string to be used as serialized entities list separator, ie <em>"|", ","...</em>
+	 * Set the string to be used as serialized entities list separator, ie <em>"|", ","...</em>
 	 * 
 	 * @param entitiesSeparator the string to use
 	 */

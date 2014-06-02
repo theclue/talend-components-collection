@@ -189,13 +189,7 @@ java.util.HashMap
 		<%=TalendFlowFactory%> tablefactory_<%=cid%> = tmodel_<%=cid%>.getFlowFactory();
 		        
 		// init needed data flows
-		<%=TalendFlow%> queryResults_<%=cid%> = tablefactory_<%=cid%>.newFlow("Twitter Query Results", 0, false);
 		<%=TalendFlow%> tweets_<%=cid%> = tablefactory_<%=cid%>.newFlow("Tweets", <%=2*rpp%>, false);
-      
-      // Prepare columns for query results data flow
-		queryResults_<%=cid%>.addColumn("statusSet", <%=QueryResultField%>.STATUS_SET.getTalendType(), null, false)
-					.addColumn("hasNext", <%=QueryResultField%>.HAS_NEXT.getTalendType(), false, false)
-					.addColumn("nextQuery", <%=.QueryResultField%>.NEXT_QUERY.getTalendType(), null, false);
 		
 		// Prepare columns for tweets details data flow
 <%

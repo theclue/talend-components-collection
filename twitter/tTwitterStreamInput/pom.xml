@@ -12,7 +12,7 @@
 		<component-author>Gabriele Baldassarre</component-author>
 		<dependencyVersion>false</dependencyVersion>
 		<addMavenDescription>true</addMavenDescription>
-		<useSnapshot>true</useSnapshot>
+		<useSnapshot>false</useSnapshot>
 		<componentsFolder>${user.home}/talend_components</componentsFolder>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
