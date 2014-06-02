@@ -14,7 +14,6 @@
 	</DOCUMENTATION>
 	<CONNECTORS>
 		<CONNECTOR CTYPE="FLOW" MAX_INPUT="0" MAX_OUTPUT="0" />
-		<CONNECTOR NAME="JSON" CTYPE="FLOW" MAX_INPUT="0" COLOR="f36300" />
 		<CONNECTOR NAME="STANDARD" CTYPE="FLOW" MAX_INPUT="0" />
 		<CONNECTOR CTYPE="ITERATE" MAX_OUTPUT="0" MAX_INPUT="1" />
 		<CONNECTOR CTYPE="SUBJOB_OK" MAX_INPUT="1" />
@@ -26,9 +25,9 @@
 		<PARAMETER NAME="SCHEMA" FIELD="SCHEMA_TYPE" REQUIRED="false"
 			NUM_ROW="1" SHOW="true" CONTEXT="STANDARD">
 			<TABLE>
-          <COLUMN NAME="tweetId" TYPE="id_Long" LENGTH="22"/>
-      </TABLE>
-      </PARAMETER>
+				<COLUMN NAME="tweetId" TYPE="id_Long" LENGTH="22" />
+			</TABLE>
+		</PARAMETER>
 		<PARAMETER NAME="SCHEMA_JSON" FIELD="SCHEMA_TYPE" REQUIRED="true"
 			NUM_ROW="1" READONLY="true" CONTEXT="JSON" SHOW="false">
 			<TABLE READONLY="true">
@@ -37,14 +36,8 @@
 		</PARAMETER>
 		<PARAMETER NAME="OAUTH_CONNECTION" FIELD="COMPONENT_LIST"
 			REQUIRED="true" FILTER="tTwitterOAuth" NUM_ROW="1" />
-		<PARAMETER NAME="LOGICAL_OP" FIELD="CLOSED_LIST" NUM_ROW="5"
-			REQUIRED="true" >
-			<ITEMS DEFAULT="AND">
-				<ITEM NAME="OR" VALUE="OR" />
-				<ITEM NAME="AND" VALUE="AND" />
-			</ITEMS>
-		</PARAMETER>
-		<PARAMETER NAME="MAPPING" FIELD="TABLE" REQUIRED="true" NUM_ROW="2" NB_LINES="5">
+		<PARAMETER NAME="MAPPING" FIELD="TABLE" REQUIRED="true"
+			NUM_ROW="2" NB_LINES="5" GROUP="OUTPUT">
 			<ITEMS BASED_ON_SCHEMA="true">
 				<ITEM NAME="OPERATION" FIELD="CLOSED_LIST">
 					<ITEMS DEFAULT="STATUS_ID">
@@ -72,12 +65,20 @@
 			</ITEMS>
 		</PARAMETER>
 		<PARAMETER NAME="KEYWORDS" FIELD="TABLE" REQUIRED="true"
-			NUM_ROW="4" NB_LINES="3" >
+			NUM_ROW="4" NB_LINES="3" GROUP="OUTPUT">
 			<ITEMS>
 				<ITEM NAME="KEYWORD" FIELD="String" />
 			</ITEMS>
 		</PARAMETER>
-		<PARAMETER NAME="CONDITIONS" FIELD="TABLE" NUM_ROW="10" NB_LINES="3" >
+		<PARAMETER NAME="LOGICAL_OP" FIELD="CLOSED_LIST" NUM_ROW="100"
+			REQUIRED="false" GROUP="FILTERING">
+			<ITEMS DEFAULT="AND">
+				<ITEM NAME="OR" VALUE="OR" />
+				<ITEM NAME="AND" VALUE="AND" />
+			</ITEMS>
+		</PARAMETER>
+		<PARAMETER NAME="CONDITIONS" FIELD="TABLE" NUM_ROW="101"
+			NB_LINES="3" GROUP="FILTERING">
 			<ITEMS>
 				<ITEM NAME="OPERATOR" FIELD="CLOSED_LIST">
 					<ITEMS DEFAULT="EXCLUDE">
@@ -89,12 +90,180 @@
 				<ITEM NAME="QUERY" FIELD="String" />
 			</ITEMS>
 		</PARAMETER>
+		<PARAMETER NAME="LANGUAGES" FIELD="TABLE" REQUIRED="true"
+			NUM_ROW="110" NB_LINES="3" GROUP="FILTERING">
+			<ITEMS>
+				<ITEM NAME="LANGUAGE" FIELD="CLOSED_LIST">
+					<ITEMS DEFAULT="EN">
+						<ITEM NAME="NN" VALUE="nn" />
+						<ITEM NAME="GU" VALUE="gu" />
+						<ITEM NAME="ZA" VALUE="za" />
+						<ITEM NAME="IA" VALUE="ia" />
+						<ITEM NAME="PI" VALUE="pi" />
+						<ITEM NAME="BA" VALUE="ba" />
+						<ITEM NAME="SQ" VALUE="sq" />
+						<ITEM NAME="ML" VALUE="ml" />
+						<ITEM NAME="SR" VALUE="sr" />
+						<ITEM NAME="DA" VALUE="da" />
+						<ITEM NAME="HU" VALUE="hu" />
+						<ITEM NAME="MS" VALUE="ms" />
+						<ITEM NAME="HZ" VALUE="hz" />
+						<ITEM NAME="TH" VALUE="th" />
+						<ITEM NAME="PT" VALUE="pt" />
+						<ITEM NAME="ET" VALUE="et" />
+						<ITEM NAME="MT" VALUE="mt" />
+						<ITEM NAME="MO" VALUE="mo" />
+						<ITEM NAME="TS" VALUE="ts" />
+						<ITEM NAME="PS" VALUE="ps" />
+						<ITEM NAME="AE" VALUE="ae" />
+						<ITEM NAME="GV" VALUE="gv" />
+						<ITEM NAME="EO" VALUE="eo" />
+						<ITEM NAME="JA" VALUE="ja" />
+						<ITEM NAME="CH" VALUE="ch" />
+						<ITEM NAME="TW" VALUE="tw" />
+						<ITEM NAME="EL" VALUE="el" />
+						<ITEM NAME="RU" VALUE="ru" />
+						<ITEM NAME="KM" VALUE="km" />
+						<ITEM NAME="SO" VALUE="so" />
+						<ITEM NAME="BH" VALUE="bh" />
+						<ITEM NAME="CU" VALUE="cu" />
+						<ITEM NAME="SG" VALUE="sg" />
+						<ITEM NAME="QU" VALUE="qu" />
+						<ITEM NAME="SU" VALUE="su" />
+						<ITEM NAME="ND" VALUE="nd" />
+						<ITEM NAME="LB" VALUE="lb" />
+						<ITEM NAME="GA" VALUE="ga" />
+						<ITEM NAME="AZ" VALUE="az" />
+						<ITEM NAME="BI" VALUE="bi" />
+						<ITEM NAME="TK" VALUE="tk" />
+						<ITEM NAME="BR" VALUE="br" />
+						<ITEM NAME="IU" VALUE="iu" />
+						<ITEM NAME="JW" VALUE="jw" />
+						<ITEM NAME="FA" VALUE="fa" />
+						<ITEM NAME="BO" VALUE="bo" />
+						<ITEM NAME="GN" VALUE="gn" />
+						<ITEM NAME="KK" VALUE="kk" />
+						<ITEM NAME="GL" VALUE="gl" />
+						<ITEM NAME="CA" VALUE="ca" />
+						<ITEM NAME="ID" VALUE="id" />
+						<ITEM NAME="NO" VALUE="no" />
+						<ITEM NAME="PL" VALUE="pl" />
+						<ITEM NAME="KI" VALUE="ki" />
+						<ITEM NAME="TN" VALUE="tn" />
+						<ITEM NAME="SV" VALUE="sv" />
+						<ITEM NAME="KU" VALUE="ku" />
+						<ITEM NAME="LN" VALUE="ln" />
+						<ITEM NAME="ZU" VALUE="zu" />
+						<ITEM NAME="VO" VALUE="vo" />
+						<ITEM NAME="PA" VALUE="pa" />
+						<ITEM NAME="NA" VALUE="na" />
+						<ITEM NAME="TG" VALUE="tg" />
+						<ITEM NAME="NL" VALUE="nl" />
+						<ITEM NAME="SM" VALUE="sm" />
+						<ITEM NAME="AM" VALUE="am" />
+						<ITEM NAME="SS" VALUE="ss" />
+						<ITEM NAME="NG" VALUE="ng" />
+						<ITEM NAME="CO" VALUE="co" />
+						<ITEM NAME="MY" VALUE="my" />
+						<ITEM NAME="SL" VALUE="sl" />
+						<ITEM NAME="RM" VALUE="rm" />
+						<ITEM NAME="YI" VALUE="yi" />
+						<ITEM NAME="KW" VALUE="kw" />
+						<ITEM NAME="AF" VALUE="af" />
+						<ITEM NAME="CS" VALUE="cs" />
+						<ITEM NAME="SN" VALUE="sn" />
+						<ITEM NAME="UK" VALUE="uk" />
+						<ITEM NAME="SC" VALUE="sc" />
+						<ITEM NAME="KS" VALUE="ks" />
+						<ITEM NAME="NE" VALUE="ne" />
+						<ITEM NAME="BG" VALUE="bg" />
+						<ITEM NAME="ZH" VALUE="zh" />
+						<ITEM NAME="RO" VALUE="ro" />
+						<ITEM NAME="GD" VALUE="gd" />
+						<ITEM NAME="XH" VALUE="xh" />
+						<ITEM NAME="BE" VALUE="be" />
+						<ITEM NAME="AR" VALUE="ar" />
+						<ITEM NAME="TA" VALUE="ta" />
+						<ITEM NAME="MH" VALUE="mh" />
+						<ITEM NAME="KL" VALUE="kl" />
+						<ITEM NAME="TY" VALUE="ty" />
+						<ITEM NAME="CY" VALUE="cy" />
+						<ITEM NAME="IE" VALUE="ie" />
+						<ITEM NAME="DZ" VALUE="dz" />
+						<ITEM NAME="UR" VALUE="ur" />
+						<ITEM NAME="DE" VALUE="de" />
+						<ITEM NAME="TT" VALUE="tt" />
+						<ITEM NAME="IS" VALUE="is" />
+						<ITEM NAME="BN" VALUE="bn" />
+						<ITEM NAME="KV" VALUE="kv" />
+						<ITEM NAME="HY" VALUE="hy" />
+						<ITEM NAME="UZ" VALUE="uz" />
+						<ITEM NAME="HE" VALUE="he" />
+						<ITEM NAME="CV" VALUE="cv" />
+						<ITEM NAME="RN" VALUE="rn" />
+						<ITEM NAME="FR" VALUE="fr" />
+						<ITEM NAME="BS" VALUE="bs" />
+						<ITEM NAME="KN" VALUE="kn" />
+						<ITEM NAME="HO" VALUE="ho" />
+						<ITEM NAME="MG" VALUE="mg" />
+						<ITEM NAME="CE" VALUE="ce" />
+						<ITEM NAME="MR" VALUE="mr" />
+						<ITEM NAME="AY" VALUE="ay" />
+						<ITEM NAME="LA" VALUE="la" />
+						<ITEM NAME="ST" VALUE="st" />
+						<ITEM NAME="SD" VALUE="sd" />
+						<ITEM NAME="NB" VALUE="nb" />
+						<ITEM NAME="WO" VALUE="wo" />
+						<ITEM NAME="NV" VALUE="nv" />
+						<ITEM NAME="LV" VALUE="lv" />
+						<ITEM NAME="OC" VALUE="oc" />
+						<ITEM NAME="KJ" VALUE="kj" />
+						<ITEM NAME="KA" VALUE="ka" />
+						<ITEM NAME="VI" VALUE="vi" />
+						<ITEM NAME="SA" VALUE="sa" />
+						<ITEM NAME="FO" VALUE="fo" />
+						<ITEM NAME="MN" VALUE="mn" />
+						<ITEM NAME="SK" VALUE="sk" />
+						<ITEM NAME="FJ" VALUE="fj" />
+						<ITEM NAME="EN" VALUE="en" />
+						<ITEM NAME="LT" VALUE="lt" />
+						<ITEM NAME="FY" VALUE="fy" />
+						<ITEM NAME="HI" VALUE="hi" />
+						<ITEM NAME="IT" VALUE="it" />
+						<ITEM NAME="TE" VALUE="te" />
+						<ITEM NAME="UG" VALUE="ug" />
+						<ITEM NAME="ES" VALUE="es" />
+						<ITEM NAME="OR" VALUE="or" />
+						<ITEM NAME="RW" VALUE="rw" />
+						<ITEM NAME="TR" VALUE="tr" />
+						<ITEM NAME="EU" VALUE="eu" />
+						<ITEM NAME="FI" VALUE="fi" />
+						<ITEM NAME="IK" VALUE="ik" />
+						<ITEM NAME="KY" VALUE="ky" />
+						<ITEM NAME="MI" VALUE="mi" />
+						<ITEM NAME="OM" VALUE="om" />
+						<ITEM NAME="NR" VALUE="nr" />
+						<ITEM NAME="SE" VALUE="se" />
+						<ITEM NAME="TL" VALUE="tl" />
+						<ITEM NAME="SW" VALUE="sw" />
+						<ITEM NAME="AS" VALUE="as" />
+						<ITEM NAME="NY" VALUE="ny" />
+						<ITEM NAME="MK" VALUE="mk" />
+						<ITEM NAME="HR" VALUE="hr" />
+						<ITEM NAME="SI" VALUE="si" />
+						<ITEM NAME="LO" VALUE="lo" />
+						<ITEM NAME="KO" VALUE="ko" />
+						<ITEM NAME="OS" VALUE="os" />
+					</ITEMS>
+				</ITEM>
+			</ITEMS>
+		</PARAMETER>
 		<PARAMETER NAME="FILTER_LINKS" FIELD="CHECK" REQUIRED="true"
-			NUM_ROW="11" >
+			NUM_ROW="300" GROUP="FILTERING">
 			<DEFAULT>false</DEFAULT>
 		</PARAMETER>
 		<PARAMETER NAME="SEND_TO_LOGCATCHER" FIELD="CHECK" REQUIRED="true"
-			NUM_ROW="20">
+			NUM_ROW="400">
 			<DEFAULT>false</DEFAULT>
 		</PARAMETER>
 	</PARAMETERS>
@@ -107,22 +276,9 @@
 			NUM_ROW="20">
 			<DEFAULT>","</DEFAULT>
 		</PARAMETER>
-				<PARAMETER NAME="ENTITY_PREFIX" FIELD="CHECK" REQUIRED="true"
+		<PARAMETER NAME="ENTITY_PREFIX" FIELD="CHECK" REQUIRED="true"
 			NUM_ROW="21">
 			<DEFAULT>true</DEFAULT>
-		</PARAMETER>
-				<PARAMETER NAME="LANGUAGES" FIELD="TABLE" REQUIRED="true" NUM_ROW="200" NB_LINES="3" >
-			<ITEMS>
-				<ITEM NAME="LANGUAGE" FIELD="CLOSED_LIST">
-					<ITEMS DEFAULT="IT">
-						<ITEM NAME="IT" VALUE="it" />
-						<ITEM NAME="EN" VALUE="en" />
-						<ITEM NAME="ES" VALUE="es" />
-						<ITEM NAME="FR" VALUE="fr" />
-						<ITEM NAME="DE" VALUE="de" />
-					</ITEMS>
-				</ITEM>
-			</ITEMS>
 		</PARAMETER>
 	</ADVANCED_PARAMETERS>
 	<CODEGENERATION>

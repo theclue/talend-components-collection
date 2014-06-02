@@ -523,16 +523,6 @@ public class TalendRowTweetBehaviour extends Observable implements TalendFlowBeh
 								.getTypeString(), row.getKey().getName()));
 					}
 					break;
-				case JSON:
-					switch (row.getKey().getType()) {
-					case STRING:
-						current.setValue(row.getKey(), DataObjectFactory.getRawJSON(tweet));
-						break;
-					default:
-						throw new IllegalArgumentException(String.format(rb.getString("exception.uncastableColumn"), row.getKey().getType()
-								.getTypeString(), row.getKey().getName()));
-					}
-					break;
 				default:
 					throw new IllegalArgumentException(String.format(rb.getString("exception.unparseableColumn"), row.getKey().getName()));
 
@@ -589,10 +579,6 @@ public class TalendRowTweetBehaviour extends Observable implements TalendFlowBeh
 	}
 
 	public void setStatus(Status status) {
-		setChanged();
-		notifyObservers(new TwitterLogger("USER_DEF_LOG", Thread.currentThread().getId(), "INFO", String.format("Tweet: %s.",
-				status.getText())));
-
 		if (filter(status))
 			this.status = status;
 	}

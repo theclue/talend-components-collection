@@ -17,7 +17,6 @@ java.util.HashMap
 		CodeGeneratorArgument codeGenArgument = (CodeGeneratorArgument) argument;
 		INode node = (INode)codeGenArgument.getArgument();
 		String cid = node.getUniqueName();
-		
 		 
 		String TwitterLogger = "org.gabrielebaldassarre.twitter.commodities.logger.TwitterLogger";
 
@@ -44,7 +43,6 @@ java.util.HashMap
      	 ********************/
 
      	List<IConnection> outMainConns = new ArrayList<IConnection>(); // outgoing main connections
-     	List<IConnection> outJsonConns = new ArrayList<IConnection>(); // outgoing json connections
 
      	List<IMetadataColumn> outMainColumns = null;
 
@@ -77,16 +75,8 @@ java.util.HashMap
 
 		// Log parameters
 		boolean send_to_logcatcher = ("true").equals(ElementParameterParser.getValue(node, "__SEND_TO_LOGCATCHER__"));
-
-		boolean hasJsonConnections = (node.getOutgoingConnections("JSON").size() != 0);
 		
 		// Decoding outgoing connections
-		for(IConnection conn: node.getOutgoingConnections("JSON")){
-    		if(!conn.isActivate()) continue;
-    		IConnection cc = NodeUtil.getRealConnectionTypeBased(conn);
-    		outJsonConns.add(cc);
-    	}
-		
     	for(IConnection conn: node.getOutgoingConnections("STANDARD")){
     		if(!conn.isActivate()) continue;
     		IConnection cc = NodeUtil.getRealConnectionTypeBased(conn);
@@ -193,7 +183,7 @@ java.util.HashMap
 		
 		// Prepare columns for tweets details data flow
 <%
-if(outMainConns.size() > 0 || hasJsonConnections == true) stringBuffer.append(NL + "tweets_" + cid + NL); 
+if(outMainConns.size() > 0) stringBuffer.append(NL + "tweets_" + cid + NL); 
  if(outMainConns.size() > 0){
  
 	IConnection conn = outMainConns.get(0);
@@ -209,8 +199,7 @@ if(outMainConns.size() > 0 || hasJsonConnections == true) stringBuffer.append(NL
 		stringBuffer.append(".addColumn(\"" + schemaColumn +"\", " + TalendType + ".getInstanceFromTalendId(\"" + type + "\"))" + NL);
 	}
 }
-if(hasJsonConnections == true) stringBuffer.append(".addColumn(\"jsonString\", " + TalendType + ".getInstanceFromTalendId(\"id_String\"))" + NL);
-if(outMainConns.size() > 0 || hasJsonConnections == true) stringBuffer.append(";" + NL);	
+if(outMainConns.size() > 0) stringBuffer.append(";" + NL);	
 %>
 		// Prepare visitors
 
@@ -232,7 +221,7 @@ if(outMainConns.size() > 0 || hasJsonConnections == true) stringBuffer.append(";
 		
 	// Link tweet details column to desired data
 <%
-	if(outMainConns.size() > 0 || hasJsonConnections == true) stringBuffer.append(NL + "trCrawl_" + cid + NL);
+	if(outMainConns.size() > 0) stringBuffer.append(NL + "trCrawl_" + cid + NL);
 	if(outMainConns.size() > 0){
 
 	for(Map<String, String> data : mapping){
@@ -242,8 +231,7 @@ if(outMainConns.size() > 0 || hasJsonConnections == true) stringBuffer.append(";
 		stringBuffer.append(".setColumnLink(tweets_" + cid + ".getColumn(\"" + schemaColumn + "\"), " + TweetField + "." + operation + ")" + NL);
 	}
 }
- if(hasJsonConnections == true) stringBuffer.append(".setColumnLink(tweets_" + cid + ".getColumn(\"jsonString\"), " + TweetField + ".JSON)" + NL);
-if(outMainConns.size() > 0 || hasJsonConnections == true) stringBuffer.append(";" + NL);
+if(outMainConns.size() > 0) stringBuffer.append(";" + NL);
  %>
  
  	while(nb_line_<%=cid%> < <%=limit%>){

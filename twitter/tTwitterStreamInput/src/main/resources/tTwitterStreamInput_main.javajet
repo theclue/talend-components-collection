@@ -23,7 +23,6 @@ String cid = node.getUniqueName();
      	 ********************/
 
      	List<IConnection> outMainConns = new ArrayList<IConnection>(); // outgoing main connections
-     	List<IConnection> outJsonConns = new ArrayList<IConnection>(); // outgoing json connections
 
      	List<IMetadataColumn> outMainColumns = null;
      	
@@ -33,12 +32,6 @@ String cid = node.getUniqueName();
 		
      	
      	// Decoding outgoing connections
-		for(IConnection conn: node.getOutgoingConnections("JSON")){
-    		if(!conn.isActivate()) continue;
-    		IConnection cc = NodeUtil.getRealConnectionTypeBased(conn);
-    		outJsonConns.add(cc);
-    	}
-		
     	for(IConnection conn: node.getOutgoingConnections("STANDARD")){
     		if(!conn.isActivate()) continue;
     		IConnection cc = NodeUtil.getRealConnectionTypeBased(conn);
@@ -77,25 +70,5 @@ for (IConnection conn : outMainConns){ //2
     
   }
 
- %>
- <%
-for (IConnection conn : outJsonConns){ //2
-  
-    stringBuffer.append(NL);
-    stringBuffer.append("/**" + NL);
-    stringBuffer.append(" * start of outgoing connection: " + conn.getName() + NL);
-    stringBuffer.append(" */" + NL);
-    stringBuffer.append(conn.getName() + " = new " + conn.getName() + "Struct();");
-
-		stringBuffer.append(NL);
-		stringBuffer.append(conn.getName() + ".jsonString = (String) singleTweet_" + cid + ".getValue(\"jsonString\");");
-		stringBuffer.append(NL);
-
-	
-	 stringBuffer.append("/**" + NL);
-    stringBuffer.append(" * end of outgoing connection: " + conn.getName() + NL);
-    stringBuffer.append(" */" + NL);
-    
-  }
  %>
 nb_line_<%=cid%>++;
