@@ -1,0 +1,28 @@
+<%@ jet 
+imports="
+org.talend.core.model.process.INode
+org.talend.core.model.process.ElementParameterParser
+org.talend.core.model.process.IConnection
+org.talend.core.model.process.IConnectionCategory
+org.talend.designer.codegen.config.CodeGeneratorArgument
+" 
+%>
+<% 
+CodeGeneratorArgument codeGenArgument = (CodeGeneratorArgument) argument;
+INode node = (INode)codeGenArgument.getArgument();
+String cid = node.getUniqueName();
+
+// Parameters
+String consumer_key = ElementParameterParser.getValue(node,"__CONSUMER_KEY__");
+String consumer_secret = ElementParameterParser.getValue(node,"__CONSUMER_SECRET__");
+String access_token = ElementParameterParser.getValue(node,"__ACCESS_TOKEN__");
+String access_token_secret = ElementParameterParser.getValue(node,"__ACCESS_TOKEN_SECRET__");
+
+%>
+/*
+ * Set the Jumblr client
+ */
+com.tumblr.jumblr.JumblrClient tumblr_<%= cid %> = new com.tumblr.jumblr.JumblrClient(<%= consumer_key %>, <%= consumer_secret %>);
+tumblr_<%= cid %>.setToken(<%= access_token %>, <%= access_token_secret %>);
+
+globalMap.put("tumblr_<%= cid %>", tumblr_<%= cid %>);

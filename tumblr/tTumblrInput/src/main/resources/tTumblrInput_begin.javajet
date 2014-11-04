@@ -1,0 +1,170 @@
+<%@ jet 
+imports="
+org.talend.core.model.process.INode
+org.talend.core.model.process.ElementParameterParser
+org.talend.core.model.metadata.IMetadataColumn 
+org.talend.core.model.process.IConnection
+org.talend.designer.codegen.config.CodeGeneratorArgument
+org.talend.core.model.utils.NodeUtil
+java.util.ArrayList
+java.util.Map
+java.util.List
+java.util.HashMap
+" 
+%>
+<%
+		CodeGeneratorArgument codeGenArgument = (CodeGeneratorArgument) argument;
+		INode node = (INode)codeGenArgument.getArgument();
+		String cid = node.getUniqueName();
+
+
+		/********************
+		 * IMPORTS          *
+		 ********************/
+		 
+		String TalendFlowController = "org.gabrielebaldassarre.tcomponent.bridge.TalendFlowController";
+		String TalendFlowModel = "org.gabrielebaldassarre.tcomponent.bridge.TalendFlowModel";
+		String TalendContext = "org.gabrielebaldassarre.tcomponent.bridge.TalendContext";
+		String TalendFlowFactory = "org.gabrielebaldassarre.tcomponent.bridge.TalendFlowFactory";
+		String TalendFlow = "org.gabrielebaldassarre.tcomponent.bridge.TalendFlow";
+		String TalendType = "org.gabrielebaldassarre.tcomponent.bridge.TalendType";
+		String TalendRow = "org.gabrielebaldassarre.tcomponent.bridge.TalendRow";
+		
+		String TumblrLogger = "org.gabrielebaldassarre.tumblr.logger.TumblrLogger";
+		
+		String TumblrPostField = "org.gabrielebaldassarre.tumblr.post.TumblrPostField";
+
+    	/********************
+    	 * DEFINES          *
+     	 ********************/
+
+     	List<IConnection> outMainConns = new ArrayList<IConnection>(); // outgoing main connections
+
+     	List<IMetadataColumn> outMainColumns = null;
+
+		// Mapping parameters
+		Map<String, List<Map<String, String>>> mapping = new HashMap<String, List<Map<String, String>>>();
+		mapping.put("GENERIC", (List<Map<String,String>>)ElementParameterParser.getObjectValue(node,  "__GENERIC_MAPPING__"));
+		mapping.put("TEXT", (List<Map<String,String>>)ElementParameterParser.getObjectValue(node,  "__TEXT_MAPPING__"));
+		mapping.put("PHOTO", (List<Map<String,String>>)ElementParameterParser.getObjectValue(node,  "__PHOTO_MAPPING__"));
+		mapping.put("QUOTE", (List<Map<String,String>>)ElementParameterParser.getObjectValue(node,  "__QUOTE_MAPPING__"));
+		mapping.put("LINK", (List<Map<String,String>>)ElementParameterParser.getObjectValue(node,  "__LINK_MAPPING__"));
+		mapping.put("CHAT", (List<Map<String,String>>)ElementParameterParser.getObjectValue(node,  "__CHAT_MAPPING__"));
+		mapping.put("AUDIO", (List<Map<String,String>>)ElementParameterParser.getObjectValue(node,  "__AUDIO_MAPPING__"));
+		mapping.put("VIDEO", (List<Map<String,String>>)ElementParameterParser.getObjectValue(node,  "__VIDEO_MAPPING__"));
+		mapping.put("ANSWER", (List<Map<String,String>>)ElementParameterParser.getObjectValue(node,  "__ANSWER_MAPPING__"));
+		
+		String oauth_connection = ElementParameterParser.getValue(node, "__OAUTH_CONNECTION__"); 
+
+		// Parameters
+		String tag = ElementParameterParser.getValue(node,"__TAG__");
+		String before = ElementParameterParser.getValue(node,"__BEFORE__");
+		String format = ElementParameterParser.getValue(node,"__FORMAT__");
+		String postType = ElementParameterParser.getValue(node,"__POST_TYPE__");
+		
+		// Log parameters
+		boolean send_to_logcatcher = ("true").equals(ElementParameterParser.getValue(node, "__SEND_TO_LOGCATCHER__"));
+
+		boolean hasJsonConnections = (node.getOutgoingConnections("JSON").size() != 0);
+		
+    	for(IConnection conn: node.getOutgoingConnections()){
+    		if(!conn.isActivate()) continue;
+    		IConnection cc = NodeUtil.getRealConnectionTypeBased(conn);
+    		outMainConns.add(cc);
+    	}
+
+%>
+		/**
+		 * Talend Bridge Logger
+		 * @see http://gabrielebaldassarre.com
+		 */
+		
+		class TalendTumblrLogger_<%=cid%> implements java.util.Observer{
+
+			   public void update(java.util.Observable obs, Object obj)
+			   {
+			   <%=TumblrLogger%> log = (<%=TumblrLogger%>)obj;
+			   <% if(send_to_logcatcher == true) {
+						if (node.getProcess().getNodesOfType("tLogCatcher").size() > 0) {
+							@SuppressWarnings("unchecked")
+							List<INode> logCatchers = (List<INode>)node.getProcess().getNodesOfType("tLogCatcher");
+							for (INode logCatcher : logCatchers) {
+								if (("true").equals(ElementParameterParser.getValue(logCatcher, "__CATCH_TWARN__"))) { %>
+									<%=logCatcher.getUniqueName() %>.addMessage("tWarn", "<%=cid %>", 4, log.getMessage(), 210);
+									<%=logCatcher.getDesignSubjobStartNode().getUniqueName() %>Process(globalMap);
+								<%
+								}
+							}
+						}
+		 			} %>
+			   	resumeUtil.addLog(log.getCategory(), "NODE:<%=cid %>", "", log.getThreadId() + "", log.getSeverity(),"", log.getMessage(),"", "");
+				   System.err.println(log.getMessage());
+			   }
+			
+		}
+		
+		TalendTumblrLogger_<%=cid%> tumblrLogger_<%=cid%> = new TalendTumblrLogger_<%=cid%>();
+
+int nb_line_<%=cid%> = 0;
+ 
+		/**
+		 * TOS-bridge data structures
+		 * @see http://gabrielebaldassarre.com
+		 */
+		 
+		// data model initialization      
+		<%=TalendFlowController%> tcontroller_<%=cid%> = <%=TalendFlowController%>.getInstance();
+		<%=TalendFlowModel%> tmodel_<%=cid%> = tcontroller_<%=cid%>.getModel(new <%=TalendContext%>(globalMap));
+
+		// flows factory interface
+		<%=TalendFlowFactory%> tablefactory_<%=cid%> = tmodel_<%=cid%>.getFlowFactory();
+		        
+		// init needed data flows
+		<%=TalendFlow%> posts_<%=cid%> = tablefactory_<%=cid%>.newFlow("Tumblr", 20, false);
+      		
+		// Prepare columns for posts details data flow
+<%
+ if(outMainConns.size() > 0){
+ 
+ 	stringBuffer.append(NL + "posts_" + cid + NL); 
+	IConnection conn = outMainConns.get(0);
+	
+	outMainColumns = conn.getMetadataTable().getListColumns();  
+  	Map<String,IMetadataColumn> columnsMap = new HashMap<String,IMetadataColumn>();
+  	for (IMetadataColumn col : outMainColumns) columnsMap.put(col.getLabel(),col);
+
+	for(Map<String, String> data : mapping.get(postType)){
+		String schemaColumn = data.get("SCHEMA_COLUMN"); 
+		String type = columnsMap.get(schemaColumn).getTalendType();
+
+		stringBuffer.append(".addColumn(\"" + schemaColumn +"\", " + TalendType + ".getInstanceFromTalendId(\"" + type + "\"))" + NL);
+	}
+}
+if(outMainConns.size() > 0) stringBuffer.append(";" + NL);	
+%>
+		
+		// Prepare visitors
+
+	// Link tumblr posts details column to desired data
+<%
+	if(outMainConns.size() > 0){
+
+	stringBuffer.append(NL + "twCrawl_" + cid + NL);
+
+	for(Map<String, String> data : mapping.get(postType)){
+		String schemaColumn = data.get("SCHEMA_COLUMN"); 
+		String operation = data.get("OPERATION"); 
+
+		stringBuffer.append(".setColumnLink(posts_" + cid + ".getColumn(\"" + schemaColumn + "\"), " + TumblrPostField + "." + operation + ")" + NL);
+	}
+}
+if(outMainConns.size() > 0) stringBuffer.append(";" + NL);
+ %>
+		qrCrawl_<%=cid%>.visit(queryResults_<%=cid%>);
+		
+		for(<%=TalendRow%> page_<%=cid%> : qrCrawl_<%=cid%>){
+			tweets_<%=cid%>.truncate();
+			twCrawl_<%=cid%>.setInput(page_<%=cid%>.getTalendValue("statusSet"));
+			twCrawl_<%=cid%>.visit(tweets_<%=cid%>);
+
+			for(<%=TalendRow%> singleTweet_<%=cid%> : java.util.Arrays.asList(posts_<%=cid%>.getRows())){						
