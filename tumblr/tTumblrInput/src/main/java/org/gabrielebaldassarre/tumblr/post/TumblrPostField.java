@@ -1,7 +1,7 @@
 package org.gabrielebaldassarre.tumblr.post;
 
 /*
-This file is part of tTwitterInput Talend component
+This file is part of tTumblrInput Talend component
 Talend Bridge is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or

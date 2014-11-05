@@ -31,8 +31,7 @@ java.util.HashMap
 		String TalendRow = "org.gabrielebaldassarre.tcomponent.bridge.TalendRow";
 		
 		String TumblrLogger = "org.gabrielebaldassarre.tumblr.logger.TumblrLogger";
-		
-		String TumblrPostField = "org.gabrielebaldassarre.tumblr.post.TumblrPostField";
+		String TumblrPostField = "org.gabrielebaldassarre.tumblr.post.Tumblr" + ElementParameterParser.getValue(node,"__POST_TYPE__") + "Field";
 
     	/********************
     	 * DEFINES          *
@@ -44,15 +43,15 @@ java.util.HashMap
 
 		// Mapping parameters
 		Map<String, List<Map<String, String>>> mapping = new HashMap<String, List<Map<String, String>>>();
-		mapping.put("GENERIC", (List<Map<String,String>>)ElementParameterParser.getObjectValue(node,  "__GENERIC_MAPPING__"));
-		mapping.put("TEXT", (List<Map<String,String>>)ElementParameterParser.getObjectValue(node,  "__TEXT_MAPPING__"));
-		mapping.put("PHOTO", (List<Map<String,String>>)ElementParameterParser.getObjectValue(node,  "__PHOTO_MAPPING__"));
-		mapping.put("QUOTE", (List<Map<String,String>>)ElementParameterParser.getObjectValue(node,  "__QUOTE_MAPPING__"));
-		mapping.put("LINK", (List<Map<String,String>>)ElementParameterParser.getObjectValue(node,  "__LINK_MAPPING__"));
-		mapping.put("CHAT", (List<Map<String,String>>)ElementParameterParser.getObjectValue(node,  "__CHAT_MAPPING__"));
-		mapping.put("AUDIO", (List<Map<String,String>>)ElementParameterParser.getObjectValue(node,  "__AUDIO_MAPPING__"));
-		mapping.put("VIDEO", (List<Map<String,String>>)ElementParameterParser.getObjectValue(node,  "__VIDEO_MAPPING__"));
-		mapping.put("ANSWER", (List<Map<String,String>>)ElementParameterParser.getObjectValue(node,  "__ANSWER_MAPPING__"));
+		mapping.put("Post", (List<Map<String,String>>)ElementParameterParser.getObjectValue(node,  "__GENERIC_MAPPING__"));
+		mapping.put("Text", (List<Map<String,String>>)ElementParameterParser.getObjectValue(node,  "__TEXT_MAPPING__"));
+		mapping.put("Photo", (List<Map<String,String>>)ElementParameterParser.getObjectValue(node,  "__PHOTO_MAPPING__"));
+		mapping.put("Quote", (List<Map<String,String>>)ElementParameterParser.getObjectValue(node,  "__QUOTE_MAPPING__"));
+		mapping.put("Link", (List<Map<String,String>>)ElementParameterParser.getObjectValue(node,  "__LINK_MAPPING__"));
+		mapping.put("Chat", (List<Map<String,String>>)ElementParameterParser.getObjectValue(node,  "__CHAT_MAPPING__"));
+		mapping.put("Audio", (List<Map<String,String>>)ElementParameterParser.getObjectValue(node,  "__AUDIO_MAPPING__"));
+		mapping.put("Video", (List<Map<String,String>>)ElementParameterParser.getObjectValue(node,  "__VIDEO_MAPPING__"));
+		mapping.put("Answer", (List<Map<String,String>>)ElementParameterParser.getObjectValue(node,  "__ANSWER_MAPPING__"));
 		
 		String oauth_connection = ElementParameterParser.getValue(node, "__OAUTH_CONNECTION__"); 
 
