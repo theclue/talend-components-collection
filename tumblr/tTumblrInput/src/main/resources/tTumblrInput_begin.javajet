@@ -33,6 +33,9 @@ java.util.HashMap
 		String TumblrLogger = "org.gabrielebaldassarre.tumblr.logger.TumblrLogger";
 		String TumblrPostField = "org.gabrielebaldassarre.tumblr.post.TumblrPostField";
 		String TumblrPostType = "org.gabrielebaldassarre.tumblr.post.TumblrPostType";
+		String JumblrClient = "com.tumblr.jumblr.JumblrClient";
+		String TalendFlowQueryResultBehaviour = "org.gabrielebaldassarre.tumblr.post.TalendFlowQueryResultBehaviour";
+		String TalendFlowTweetBehaviour = "org.gabrielebaldassarre.tumblr.post.TalendFlowTweetBehaviour";
 
    		/********************
     	 * DEFINES          *
@@ -52,6 +55,8 @@ java.util.HashMap
 		String tag = ElementParameterParser.getValue(node,"__TAG__");
 		String before = ElementParameterParser.getValue(node,"__BEFORE__");
 		String format = ElementParameterParser.getValue(node,"__FORMAT__");
+		String limit = ElementParameterParser.getValue(node,"__LIMIT__");
+		String entitiesSeparator = ElementParameterParser.getValue(node,"__ENTITIES_SEPARATOR__");
 		String postType = ElementParameterParser.getValue(node,"__POST_TYPE__");
 		
 		// Log parameters
@@ -144,16 +149,17 @@ if(hasJsonConnections == true) stringBuffer.append(".addColumn(\"jsonString\", "
 if(outMainConns.size() > 0 || hasJsonConnections == true) stringBuffer.append(";" + NL);	
 %>
 		
-		// Prepare visitors -------------------------------------------------------------------------------------------+
-		<%=TalendFlowQueryResultBehaviour%> qrCrawl_<%=cid%> = new <%=TalendFlowQueryResultBehaviour%>((twitter4j.TwitterBase)globalMap.get("twitter_<%= oauth_connection %>"), s_<%=cid%>.build(), <%=limit%>);
-		<%=TalendFlowTweetBehaviour%> twCrawl_<%=cid%> = new <%=TalendFlowTweetBehaviour%>(<%=entitySeparator%>, <%=entityPrefix%>);
+		// Prepare visitors
+		<%=TalendFlowQueryResultBehaviour%> qrCrawl_<%=cid%> = new <%=TalendFlowQueryResultBehaviour%>((<%=JumblrClient%>)globalMap.get("tumblr_<%= oauth_connection %>"), s_<%=cid%>.build(), <%=limit%>);
+		qrCrawl_<%=cid%>.format(<%=format%>);
+		<%=TalendFlowTweetBehaviour%> tlCrawl_<%=cid%> = new <%=TalendFlowPostBehaviour%>(<%=TumblrPostType%>.<%=postType%>, <%=entitiesSeparator%>);
 		
 		qrCrawl_<%=cid%>.addObserver(logger_<%=cid%>);
 		twCrawl_<%=cid%>.addObserver(logger_<%=cid%>);
 									
 	// Link tumblr details column to desired data
 <%
-	if(outMainConns.size() > 0 || hasJsonConnections == true) stringBuffer.append(NL + "twCrawl_" + cid + NL);
+	if(outMainConns.size() > 0 || hasJsonConnections == true) stringBuffer.append(NL + "tlCrawl_" + cid + NL);
 	if(outMainConns.size() > 0){
 
 	for(Map<String, String> data : mapping){
@@ -163,14 +169,14 @@ if(outMainConns.size() > 0 || hasJsonConnections == true) stringBuffer.append(";
 		stringBuffer.append(".setColumnLink(posts_" + cid + ".getColumn(\"" + schemaColumn + "\"), " + TumblrField + "." + operation + ")" + NL);
 	}
 }
-if(hasJsonConnections == true) stringBuffer.append(".setColumnLink(posts_" + cid + ".getColumn(\"jsonString\"), " + TumblField + ".JSON)" + NL);
+if(hasJsonConnections == true) stringBuffer.append(".setColumnLink(posts_" + cid + ".getColumn(\"jsonString\"), " + TumblrPostField + ".JSON)" + NL);
 if(outMainConns.size() > 0 || hasJsonConnections == true) stringBuffer.append(";" + NL);
  %>
 		qrCrawl_<%=cid%>.visit(queryResults_<%=cid%>);
 		
 		for(<%=TalendRow%> page_<%=cid%> : qrCrawl_<%=cid%>){
-			tweets_<%=cid%>.truncate();
-			twCrawl_<%=cid%>.setInput(page_<%=cid%>.getTalendValue("statusSet"));
-			twCrawl_<%=cid%>.visit(tweets_<%=cid%>);
+			posts_<%=cid%>.truncate();
+			tlCrawl_<%=cid%>.setInput(page_<%=cid%>.getTalendValue("postList"));
+			tlCrawl_<%=cid%>.visit(posts_<%=cid%>);
 
-			for(<%=TalendRow%> singleTweet_<%=cid%> : java.util.Arrays.asList(tweets_<%=cid%>.getRows())){							
+			for(<%=TalendRow%> singlePost_<%=cid%> : java.util.Arrays.asList(posts_<%=cid%>.getRows())){							

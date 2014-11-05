@@ -13,8 +13,6 @@ along with Nome-Programma.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.gabrielebaldassarre.tumblr.post;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -24,7 +22,7 @@ import java.util.Observable;
 import java.util.ResourceBundle;
 import java.util.Map.Entry;
 import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
+import java.sql.Timestamp;
 
 import org.gabrielebaldassarre.tcomponent.bridge.TalendFlow;
 import org.gabrielebaldassarre.tcomponent.bridge.TalendFlowBehaviour;
@@ -33,7 +31,6 @@ import org.gabrielebaldassarre.tcomponent.bridge.TalendRow;
 import org.gabrielebaldassarre.tcomponent.bridge.TalendRowFactory;
 import org.gabrielebaldassarre.tcomponent.bridge.TalendType;
 import org.gabrielebaldassarre.tcomponent.bridge.TalendValue;
-import org.gabrielebaldassarre.twitter.commodities.tweet.TweetField;
 
 import com.google.common.base.Joiner;
 import com.tumblr.jumblr.types.AnswerPost;
@@ -46,15 +43,8 @@ import com.tumblr.jumblr.types.QuotePost;
 import com.tumblr.jumblr.types.TextPost;
 import com.tumblr.jumblr.types.VideoPost;
 
-import twitter4j.GeoLocation;
-import twitter4j.HashtagEntity;
-import twitter4j.Status;
-import twitter4j.URLEntity;
-import twitter4j.UserMentionEntity;
-import twitter4j.json.DataObjectFactory;
-
 /**
- * This visitor parse a tumblr resultset and fit a tumblr data flow
+ * This visitor parse a tumblr resut set and fit a tumblr data flow
  * 
  * @author Gabriele Baldassarre
  *
@@ -67,10 +57,8 @@ public class TalendFlowPostBehaviour extends Observable implements TalendFlowBeh
 	private TumblrPostType only;
 	private String entitiesSepatator;
 
-	private static SimpleDateFormat DATEFORMAT = new SimpleDateFormat("yyyyMMddHHmmss");
-
 	/**
-	 * Build a visitor to parse a resultset gained from {@link TalendFlowQueryResultBehaviour}
+	 * Build a visitor to parse a result set gained from {@link TalendFlowQueryResultBehaviour}
 	 * 
 	 * @param entitiesSeparator the substring to use as separator for serialized entity list, ie '|' or ','
 	 */
@@ -132,19 +120,12 @@ public class TalendFlowPostBehaviour extends Observable implements TalendFlowBeh
 
 				Iterator<Entry<TalendColumn, TumblrPostField>> col = associations.entrySet().iterator();
 				while (col.hasNext()) {
-					List<String> h;
-					List<Long> l;
 
 					Map.Entry<TalendColumn, TumblrPostField> row = (Map.Entry<TalendColumn, TumblrPostField>)col.next();
 
 					if(target != null && !row.getKey().getFlow().equals(target)){
 						throw new IllegalArgumentException(String.format(rb.getString("exception.columnNotInFlow"), row.getKey().getName(), target.getName()));
 					}
-
-					// If the field is not available on this type of post, bypass everything and set to null
-					if(!currentType.getAvailableFields().contains(row.getValue())){
-						current.setValue(row.getKey(), null);
-					} else {
 
 						switch(row.getValue()){
 
@@ -203,13 +184,15 @@ public class TalendFlowPostBehaviour extends Observable implements TalendFlowBeh
 							}
 							break;
 						case BODY:
-							String body;
+							String body = null;
 							switch(currentType){
 							case TEXT:
 								body = ((TextPost)post).getBody();
 								break;
 							case CHAT:
 								body = ((ChatPost)post).getBody();
+								break;
+							default:
 								break;
 							}
 							switch(row.getKey().getType()){
@@ -221,7 +204,7 @@ public class TalendFlowPostBehaviour extends Observable implements TalendFlowBeh
 							}
 							break;
 						case CAPTION:
-							String caption;
+							String caption = null;
 							switch(currentType){
 							case PHOTO:
 								caption = ((PhotoPost)post).getCaption();
@@ -231,6 +214,8 @@ public class TalendFlowPostBehaviour extends Observable implements TalendFlowBeh
 								break;
 							case VIDEO:
 								caption = ((VideoPost)post).getCaption();
+								break;
+							default:
 								break;
 							}
 							switch(row.getKey().getType()){
@@ -269,13 +254,15 @@ public class TalendFlowPostBehaviour extends Observable implements TalendFlowBeh
 							}
 							break;
 						case EMBED_CODE:
-							String embed;
+							String embed = null;
 							switch (currentType) {
 							case AUDIO:
 								embed = ((AudioPost)post).getEmbedCode();
 								break;
 							case VIDEO:
 								embed = ((AudioPost)post).getEmbedCode();
+								break;
+							default:
 								break;
 							}
 							switch(row.getKey().getType()){
@@ -506,6 +493,9 @@ public class TalendFlowPostBehaviour extends Observable implements TalendFlowBeh
 							case STRING:
 								current.setValue(row.getKey(), String.valueOf(((AudioPost)post).getPlayCount()));
 								break;
+							case INTEGER:
+								current.setValue(row.getKey(), ((AudioPost)post).getPlayCount());
+								break;
 							default:
 								throw new IllegalArgumentException(String.format(rb.getString("exception.uncastableColumn"), row.getKey().getType().getTypeString(), row.getKey().getName()));
 							}
@@ -615,16 +605,195 @@ public class TalendFlowPostBehaviour extends Observable implements TalendFlowBeh
 								throw new IllegalArgumentException(String.format(rb.getString("exception.uncastableColumn"), row.getKey().getType().getTypeString(), row.getKey().getName()));
 							}
 							break;
+						case TAGS:
+							switch(row.getKey().getType()){
+							case STRING:
+							case LIST:
+								current.setValue(row.getKey(), !TalendType.STRING.equals(row.getKey().getType()) ? post.getTags() : Joiner.on(getEntitiesSeparator()).join(post.getTags()));
+								break;
+							default:
+								throw new IllegalArgumentException(String.format(rb.getString("exception.uncastableColumn"), row.getKey().getType().getTypeString(), row.getKey().getName()));
+							}
+							break;
+						case TEXT:	
+							switch(row.getKey().getType()){
+							case STRING:
+								current.setValue(row.getKey(), ((QuotePost)post).getText());
+								break;
+							default:
+								throw new IllegalArgumentException(String.format(rb.getString("exception.uncastableColumn"), row.getKey().getType().getTypeString(), row.getKey().getName()));
+							}
+							break;
+						case THUMBNAIL_HEIGHT:	
+							switch(row.getKey().getType()){
+							case BIGDECIMAL:
+								current.setValue(row.getKey(), new BigDecimal(((VideoPost)post).getThumbnailHeight()));
+								break;
+							case DOUBLE:
+								current.setValue(row.getKey(), new Double(((VideoPost)post).getThumbnailHeight()));
+								break;
+							case FLOAT:
+								current.setValue(row.getKey(), new Float(((VideoPost)post).getThumbnailHeight()));
+								break;
+							case LONG:
+								current.setValue(row.getKey(), new Long(((VideoPost)post).getThumbnailHeight()));
+								break;
+							case STRING:
+								current.setValue(row.getKey(), String.valueOf(((VideoPost)post).getThumbnailHeight()));
+								break;
+							case INTEGER:
+								current.setValue(row.getKey(), ((VideoPost)post).getThumbnailHeight());
+								break;
+							default:
+								throw new IllegalArgumentException(String.format(rb.getString("exception.uncastableColumn"), row.getKey().getType().getTypeString(), row.getKey().getName()));
+							}
+							break;
+						case THUMBNAIL_WIDTH:	
+							switch(row.getKey().getType()){
+							case BIGDECIMAL:
+								current.setValue(row.getKey(), new BigDecimal(((VideoPost)post).getThumbnailWidth()));
+								break;
+							case DOUBLE:
+								current.setValue(row.getKey(), new Double(((VideoPost)post).getThumbnailWidth()));
+								break;
+							case FLOAT:
+								current.setValue(row.getKey(), new Float(((VideoPost)post).getThumbnailWidth()));
+								break;
+							case LONG:
+								current.setValue(row.getKey(), new Long(((VideoPost)post).getThumbnailWidth()));
+								break;
+							case STRING:
+								current.setValue(row.getKey(), String.valueOf(((VideoPost)post).getThumbnailWidth()));
+								break;
+							case INTEGER:
+								current.setValue(row.getKey(), ((VideoPost)post).getThumbnailWidth());
+								break;
+							default:
+								throw new IllegalArgumentException(String.format(rb.getString("exception.uncastableColumn"), row.getKey().getType().getTypeString(), row.getKey().getName()));
+							}
+							break;
+						case THUMBNAIL_URL:
+							switch(row.getKey().getType()){
+							case STRING:
+								current.setValue(row.getKey(), ((VideoPost)post).getThumbnailUrl());
+								break;
+							default:
+								throw new IllegalArgumentException(String.format(rb.getString("exception.uncastableColumn"), row.getKey().getType().getTypeString(), row.getKey().getName()));
+							}
+							break;
+						case TIMESTAMP:
+							switch(row.getKey().getType()){
+							case DATE:
+								current.setValue(row.getKey(), new Timestamp(post.getTimestamp()));
+							case LONG:
+								current.setValue(row.getKey(), post.getTimestamp());
+								break;
+							default:
+								throw new IllegalArgumentException(String.format(rb.getString("exception.uncastableColumn"), row.getKey().getType().getTypeString(), row.getKey().getName()));
+							}
+							break;
+						case TITLE:
+							String title = null;
+							switch (currentType) {
+							case TEXT:
+								title = ((TextPost)post).getTitle();
+								break;
+							case CHAT:
+								title = ((ChatPost)post).getTitle();
+								break;
+							case LINK:
+								title = ((LinkPost)post).getTitle();
+								break;
+							default:
+								break;
+							}
+							switch(row.getKey().getType()){
+							case STRING:
+								current.setValue(row.getKey(), title);
+								break;
+							default:
+								throw new IllegalArgumentException(String.format(rb.getString("exception.uncastableColumn"), row.getKey().getType().getTypeString(), row.getKey().getName()));
+							}
+							break;
+						case TRACK_NAME:
+							switch(row.getKey().getType()){
+							case STRING:
+								current.setValue(row.getKey(), ((AudioPost)post).getTrackName());
+								break;
+							default:
+								throw new IllegalArgumentException(String.format(rb.getString("exception.uncastableColumn"), row.getKey().getType().getTypeString(), row.getKey().getName()));
+							}
+							break;
+						case TRACK_NUMBER:
+							switch(row.getKey().getType()){
+							case BIGDECIMAL:
+								current.setValue(row.getKey(), new BigDecimal(((AudioPost)post).getTrackNumber()));
+								break;
+							case DOUBLE:
+								current.setValue(row.getKey(), new Double(((AudioPost)post).getTrackNumber()));
+								break;
+							case FLOAT:
+								current.setValue(row.getKey(), new Float(((AudioPost)post).getTrackNumber()));
+								break;
+							case LONG:
+								current.setValue(row.getKey(), new Long(((AudioPost)post).getTrackNumber()));
+								break;
+							case STRING:
+								current.setValue(row.getKey(), String.valueOf(((AudioPost)post).getTrackNumber()));
+							case INTEGER:
+								current.setValue(row.getKey(), ((AudioPost)post).getTrackNumber());
+								break;
+							default:
+								throw new IllegalArgumentException(String.format(rb.getString("exception.uncastableColumn"), row.getKey().getType().getTypeString(), row.getKey().getName()));
+							}
+							break;
+						case TYPE:
+							switch(row.getKey().getType()){
+							case STRING:
+								current.setValue(row.getKey(), ((AudioPost)post).getType());
+								break;
+							default:
+								throw new IllegalArgumentException(String.format(rb.getString("exception.uncastableColumn"), row.getKey().getType().getTypeString(), row.getKey().getName()));
+							}
+							break;
+						case YEAR:
+							switch(row.getKey().getType()){
+							case BIGDECIMAL:
+								current.setValue(row.getKey(), new BigDecimal(((AudioPost)post).getYear()));
+								break;
+							case DOUBLE:
+								current.setValue(row.getKey(), new Double(((AudioPost)post).getYear()));
+								break;
+							case FLOAT:
+								current.setValue(row.getKey(), new Float(((AudioPost)post).getYear()));
+								break;
+							case LONG:
+								current.setValue(row.getKey(), new Long(((AudioPost)post).getYear()));
+								break;
+							case STRING:
+								current.setValue(row.getKey(), String.valueOf(((AudioPost)post).getYear()));
+							case INTEGER:
+								current.setValue(row.getKey(), ((AudioPost)post).getYear());
+								break;							default:
+								throw new IllegalArgumentException(String.format(rb.getString("exception.uncastableColumn"), row.getKey().getType().getTypeString(), row.getKey().getName()));
+							}
+							break;
+							
+						default:
+							throw new IllegalArgumentException(String.format(rb.getString("exception.unparseableColumn"), row.getKey().getName()));
 
-						}
-					}
+						} // column-switch
 
-				}
-			}
+				} // while
+			} // current-type-if
 
-		}
+		} // post-loop
 		valid = true;
 }
+private String getEntitiesSeparator() {
+		return entitiesSepatator;
+	}
+
 /**
  * Link a column of visiting {@link TalendFlow} to a proper type as described on {@link TweetField}
  * 

@@ -36,7 +36,6 @@ import org.gabrielebaldassarre.tcomponent.bridge.TalendType;
 import org.gabrielebaldassarre.tumblr.logger.TumblrLogger;
 
 import com.tumblr.jumblr.JumblrClient;
-import com.tumblr.jumblr.exceptions.JumblrException;
 import com.tumblr.jumblr.types.Post;
 
 /**
@@ -234,6 +233,16 @@ public class TalendFlowQueryResultBehaviour extends Observable implements Talend
 	 */
 	public TalendFlowQueryResultBehaviour before(Long timestamp){
 		options.put("before", timestamp.toString());
+		return this;
+	}
+	
+	/**
+	 * Set the filter option
+	 * 
+	 * @return a reference to the instance itself
+	 */
+	public TalendFlowQueryResultBehaviour filter(String filter){
+		format(filter);
 		return this;
 	}
 

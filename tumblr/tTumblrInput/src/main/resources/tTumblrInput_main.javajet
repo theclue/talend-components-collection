@@ -66,7 +66,7 @@ for (IConnection conn : outMainConns){ //2
 		String typeToCast = JavaTypesManager.getTypeToGenerate(columnsMap.get(data.get("SCHEMA_COLUMN")).getTalendType(),true);
 		
 		String toPrimitive = JavaTypesManager.isJavaPrimitiveType(columnsMap.get(data.get("SCHEMA_COLUMN")).getTalendType(),columnsMap.get(data.get("SCHEMA_COLUMN")).isNullable()) ? "." + JavaTypesManager.getTypeToGenerate(columnsMap.get(data.get("SCHEMA_COLUMN")).getTalendType(),false) + "Value()" : "";
-		stringBuffer.append(conn.getName() + "." + data.get("SCHEMA_COLUMN") + " = ((" + typeToCast + ") singleTweet_" + cid + ".getValue(\"" + data.get("SCHEMA_COLUMN") + "\"))" + toPrimitive + ";");
+		stringBuffer.append(conn.getName() + "." + data.get("SCHEMA_COLUMN") + " = ((" + typeToCast + ") singlePost_" + cid + ".getValue(\"" + data.get("SCHEMA_COLUMN") + "\"))" + toPrimitive + ";");
 		stringBuffer.append(NL);
 
 	}
