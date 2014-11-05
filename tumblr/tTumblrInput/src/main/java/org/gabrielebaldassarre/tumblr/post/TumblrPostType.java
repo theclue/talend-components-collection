@@ -3,6 +3,8 @@ package org.gabrielebaldassarre.tumblr.post;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 import org.gabrielebaldassarre.tcomponent.bridge.TalendType;
 
@@ -52,4 +54,22 @@ ANSWER("answer");
 	public List<TumblrPostField> getAvailableFields(){
 		return fields;
 	}
+	
+	public static TumblrPostType getInstanceFromTumblr(String id) throws IllegalArgumentException {
+
+		ResourceBundle rb = ResourceBundle.getBundle("TumblrInput", Locale.getDefault());
+
+			if(id.equals("text")) return TumblrPostType.TEXT;
+			if(id.equals("photo")) return TumblrPostType.PHOTO;
+			if(id.equals("quote")) return TumblrPostType.QUOTE;
+			if(id.equals("link")) return TumblrPostType.LINK;
+			if(id.equals("chat")) return TumblrPostType.CHAT;
+			if(id.equals("audio")) return TumblrPostType.AUDIO;
+			if(id.equals("video")) return TumblrPostType.VIDEO;
+			if(id.equals("answer")) return TumblrPostType.ANSWER;
+
+
+		throw new IllegalArgumentException(String.format(Locale.getDefault(), rb.getString("exception.invalidPostype"), id));
+	}
+	
 }

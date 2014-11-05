@@ -79,8 +79,10 @@ public enum TumblrPostField {
 	THUMBNAIL_URL(TalendType.STRING, TumblrPostType.VIDEO),
 	ASKING_NAME(TalendType.STRING, TumblrPostType.ANSWER),
 	ASKING_URL(TalendType.STRING, TumblrPostType.ANSWER),
-	QUESTION(TalendType.STRING, TumblrPostType.ANSWER);
-		
+	QUESTION(TalendType.STRING, TumblrPostType.ANSWER),
+	
+	JSON(TalendType.STRING, Arrays.asList(TumblrPostType.values()));
+	
 	private TalendType type;
 	private List<TumblrPostType> postTypes;
 
