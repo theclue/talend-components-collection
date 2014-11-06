@@ -249,7 +249,7 @@ public class TalendFlowPostBehaviour extends Observable implements TalendFlowBeh
 								embed = ((AudioPost)post).getEmbedCode();
 								break;
 							case VIDEO:
-								embed = ((AudioPost)post).getEmbedCode();
+								embed = ((VideoPost)post).getVideos().get(0).getEmbedCode();
 								break;
 							default:
 								break;
@@ -398,13 +398,16 @@ public class TalendFlowPostBehaviour extends Observable implements TalendFlowBeh
 								current.setValue(row.getKey(), new BigDecimal(post.getNoteCount()));
 								break;
 							case DOUBLE:
-								current.setValue(row.getKey(), new Double(post.getNoteCount()));
+								current.setValue(row.getKey(), new Double(post.getNoteCount().toString()));
 								break;
 							case FLOAT:
-								current.setValue(row.getKey(), new Float(post.getNoteCount()));
+								current.setValue(row.getKey(), new Float(post.getNoteCount().toString()));
 								break;
 							case LONG:
-								current.setValue(row.getKey(), new Long(post.getNoteCount()));
+								current.setValue(row.getKey(), post.getNoteCount());
+								break;
+							case INTEGER:
+								current.setValue(row.getKey(), (post.getNoteCount().intValue()));
 								break;
 							case STRING:
 								current.setValue(row.getKey(), String.valueOf((post.getNoteCount())));
@@ -427,6 +430,9 @@ public class TalendFlowPostBehaviour extends Observable implements TalendFlowBeh
 							case LONG:
 								current.setValue(row.getKey(), new Long(((PhotoPost)post).getPhotos().get(0).getOriginalSize().getHeight()));
 								break;
+							case INTEGER:
+								current.setValue(row.getKey(), (new Long (((PhotoPost)post).getPhotos().get(0).getOriginalSize().getHeight())).intValue());
+								break;
 							case STRING:
 								current.setValue(row.getKey(), String.valueOf(((PhotoPost)post).getPhotos().get(0).getOriginalSize().getHeight()));
 								break;
@@ -447,6 +453,9 @@ public class TalendFlowPostBehaviour extends Observable implements TalendFlowBeh
 								break;
 							case LONG:
 								current.setValue(row.getKey(), new Long(((PhotoPost)post).getPhotos().get(0).getOriginalSize().getWidth()));
+								break;
+							case INTEGER:
+								current.setValue(row.getKey(), (new Long (((PhotoPost)post).getPhotos().get(0).getOriginalSize().getWidth())).intValue());
 								break;
 							case STRING:
 								current.setValue(row.getKey(), String.valueOf(((PhotoPost)post).getPhotos().get(0).getOriginalSize().getWidth()));
