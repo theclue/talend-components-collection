@@ -13,6 +13,7 @@ along with Nome-Programma.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.gabrielebaldassarre.tumblr.post;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -22,7 +23,6 @@ import java.util.Observable;
 import java.util.ResourceBundle;
 import java.util.Map.Entry;
 import java.math.BigDecimal;
-import java.sql.Timestamp;
 
 import org.gabrielebaldassarre.tcomponent.bridge.TalendFlow;
 import org.gabrielebaldassarre.tcomponent.bridge.TalendFlowBehaviour;
@@ -54,7 +54,6 @@ public class TalendFlowPostBehaviour extends Observable implements TalendFlowBeh
 	private Map<TalendColumn, TumblrPostField> associations;
 	private TalendValue resultSet;
 	private boolean valid;
-	private TumblrPostType only;
 	private String entitiesSepatator;
 
 	/**
@@ -62,12 +61,11 @@ public class TalendFlowPostBehaviour extends Observable implements TalendFlowBeh
 	 * 
 	 * @param entitiesSeparator the substring to use as separator for serialized entity list, ie '|' or ','
 	 */
-	public TalendFlowPostBehaviour(TumblrPostType only, String entitiesSeparator){
+	public TalendFlowPostBehaviour(String entitiesSeparator){
 		this.associations = new HashMap<TalendColumn, TumblrPostField>();
 		this.entitiesSepatator = entitiesSeparator;
-		this.only = only;
 	}
-
+	
 	/**
 	 * Check if this flow is valid
 	 * 
@@ -76,14 +74,6 @@ public class TalendFlowPostBehaviour extends Observable implements TalendFlowBeh
 		return valid;
 	}
 
-	/**
-	 * Return the filtering clause, if present
-	 * 
-	 * @return the string used as separator
-	 */
-	public TumblrPostType getFilteringClause(){
-		return only;
-	}
 
 	/**
 	 * Set the string to be used as serialized entities list separator, ie <em>"|", ","...</em>
@@ -100,7 +90,7 @@ public class TalendFlowPostBehaviour extends Observable implements TalendFlowBeh
 	 * @param target the data flow to fill
 	 */
 	public void visit(TalendFlow target) {
-		ResourceBundle rb = ResourceBundle.getBundle("tTubmlrInput", Locale.getDefault());
+		ResourceBundle rb = ResourceBundle.getBundle("tTumblrInput", Locale.getDefault());
 
 		TalendRowFactory rowFactory = target.getModel().getRowFactory();
 		valid = false;
@@ -111,10 +101,7 @@ public class TalendFlowPostBehaviour extends Observable implements TalendFlowBeh
 
 			Post post = posts.get(i);
 
-			// Exit if type mismatch
 			TumblrPostType currentType = TumblrPostType.getInstanceFromTumblr(post.getType());
-
-			if(!currentType.equals(only)){
 
 				TalendRow current = rowFactory.newRow(target);
 
@@ -126,6 +113,8 @@ public class TalendFlowPostBehaviour extends Observable implements TalendFlowBeh
 					if(target != null && !row.getKey().getFlow().equals(target)){
 						throw new IllegalArgumentException(String.format(rb.getString("exception.columnNotInFlow"), row.getKey().getName(), target.getName()));
 					}
+					
+					if(row.getValue().definedIn().contains(currentType)){
 
 						switch(row.getValue()){
 
@@ -684,7 +673,8 @@ public class TalendFlowPostBehaviour extends Observable implements TalendFlowBeh
 						case TIMESTAMP:
 							switch(row.getKey().getType()){
 							case DATE:
-								current.setValue(row.getKey(), new Timestamp(post.getTimestamp()));
+								current.setValue(row.getKey(), new Date(post.getTimestamp()*1000));
+								break;
 							case LONG:
 								current.setValue(row.getKey(), post.getTimestamp());
 								break;
@@ -740,6 +730,7 @@ public class TalendFlowPostBehaviour extends Observable implements TalendFlowBeh
 								break;
 							case STRING:
 								current.setValue(row.getKey(), String.valueOf(((AudioPost)post).getTrackNumber()));
+								break;
 							case INTEGER:
 								current.setValue(row.getKey(), ((AudioPost)post).getTrackNumber());
 								break;
@@ -750,7 +741,7 @@ public class TalendFlowPostBehaviour extends Observable implements TalendFlowBeh
 						case TYPE:
 							switch(row.getKey().getType()){
 							case STRING:
-								current.setValue(row.getKey(), ((AudioPost)post).getType());
+								current.setValue(row.getKey(), post.getType());
 								break;
 							default:
 								throw new IllegalArgumentException(String.format(rb.getString("exception.uncastableColumn"), row.getKey().getType().getTypeString(), row.getKey().getName()));
@@ -772,20 +763,23 @@ public class TalendFlowPostBehaviour extends Observable implements TalendFlowBeh
 								break;
 							case STRING:
 								current.setValue(row.getKey(), String.valueOf(((AudioPost)post).getYear()));
+								break;
 							case INTEGER:
 								current.setValue(row.getKey(), ((AudioPost)post).getYear());
-								break;							default:
+								break;							
+							default:
 								throw new IllegalArgumentException(String.format(rb.getString("exception.uncastableColumn"), row.getKey().getType().getTypeString(), row.getKey().getName()));
 							}
-							break;
-							
+							break;							
 						default:
-							throw new IllegalArgumentException(String.format(rb.getString("exception.unparseableColumn"), row.getKey().getName()));
-
+							current.setValue(row.getKey(), null);
 						} // column-switch
+					} // type-matching
+					else {
+						current.setValue(row.getKey(), null);
+					}
 
 				} // while
-			} // current-type-if
 
 		} // post-loop
 		valid = true;

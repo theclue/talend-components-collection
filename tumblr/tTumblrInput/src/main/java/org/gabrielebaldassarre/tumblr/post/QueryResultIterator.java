@@ -62,7 +62,13 @@ public class QueryResultIterator implements Iterator<TalendRow> {
 		if(posts == null || posts.size() == 0) return false;
 		
 		// Update the 'before' field for the next query
-		t.before(posts.get(posts.size() -1).getTimestamp() -1l);
+		// Since it seems the posts won't flow in reverse timestamp order
+		// traverse the entire list to get the minimum
+		Long minimumTS = null;
+		for (Post post : posts) {
+			minimumTS = (minimumTS == null ? post.getTimestamp() : (minimumTS > post.getTimestamp() ? minimumTS = post.getTimestamp() : minimumTS));
+		}
+		t.before(minimumTS);
 		
 		// If here, we have valid results
 		return true;

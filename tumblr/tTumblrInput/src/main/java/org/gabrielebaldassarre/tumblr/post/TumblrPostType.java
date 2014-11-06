@@ -34,30 +34,18 @@ VIDEO("video"),
 ANSWER("answer");
 	
 	private String postType;
-	private List<TumblrPostField> fields;
 	
 	private TumblrPostType(String type){
-		this.postType = type;
-		fields = new ArrayList<TumblrPostField>();
-		
-		for (TumblrPostField currentField : Arrays.asList(TumblrPostField.values())) {
-			for (TumblrPostType currentType : currentField.definedIn()) {
-				if(currentType.equals(this)) fields.add(currentField);
-			}
-		}	
+		this.postType = type;	
 	}
 	
 	public String toString(){
 		return postType;
 	}
 	
-	public List<TumblrPostField> getAvailableFields(){
-		return fields;
-	}
-	
 	public static TumblrPostType getInstanceFromTumblr(String id) throws IllegalArgumentException {
 
-		ResourceBundle rb = ResourceBundle.getBundle("TumblrInput", Locale.getDefault());
+		ResourceBundle rb = ResourceBundle.getBundle("tTumblrInput", Locale.getDefault());
 
 			if(id.equals("text")) return TumblrPostType.TEXT;
 			if(id.equals("photo")) return TumblrPostType.PHOTO;

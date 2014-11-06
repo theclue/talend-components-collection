@@ -68,7 +68,7 @@ public class TalendFlowQueryResultBehaviour extends Observable implements Talend
 	public TalendFlowQueryResultBehaviour(JumblrClient client, String tag, int limit) {
 		ResourceBundle rb = ResourceBundle.getBundle("tTumblrInput", Locale.getDefault());
 
-		if(!client.getClass().getInterfaces()[0].equals(JumblrClient.class)) throw new IllegalArgumentException(rb.getString("exception.illegalConnection"));
+		if(!client.getClass().equals(JumblrClient.class)) throw new IllegalArgumentException(rb.getString("exception.illegalConnection"));
 
 		this.client = (JumblrClient)client;
 		this.limit = limit;
@@ -99,7 +99,7 @@ public class TalendFlowQueryResultBehaviour extends Observable implements Talend
 	/**
 	 * Set the query options to issue against Tumblr, but doesn't perform the query itself.
 	 * 
-	 * @param options the optiosn
+	 * @param query the query options
 	 * @return a reference to this visitor itself
 	 */
 	public TalendFlowQueryResultBehaviour query(Map<String, String> options){
@@ -146,10 +146,10 @@ public class TalendFlowQueryResultBehaviour extends Observable implements Talend
 			current.setValue("postList", new ArrayList<Post>(getLimit() - alreadyRetrieved() < posts.size() ? posts.subList(0, getLimit() - alreadyRetrieved()) : posts));
 
 
-		this.retrieved += (posts != null ? posts.size() : 0);
+		this.retrieved += (posts != null ? (getLimit() - alreadyRetrieved() < posts.size() ? getLimit() - alreadyRetrieved() : posts.size()): 0);
 
 		setChanged();
-		notifyObservers(new TumblrLogger("USER_DEF_LOG", Thread.currentThread().getId(), "INFO", String.format(Locale.getDefault(), rb.getString("log.searchStatus"),  howMany, alreadyRetrieved(), getLimit() - alreadyRetrieved())));
+		notifyObservers(new TumblrLogger("USER_DEF_LOG", Thread.currentThread().getId(), "INFO", String.format(Locale.getDefault(), rb.getString("log.searchStatus"),  howMany, alreadyRetrieved(), getLimit() - alreadyRetrieved(), (getBefore() == null ? "current date" : getBefore()))));
 		if(getLimit() - alreadyRetrieved() == 0 || posts.size() < 20){
 			setChanged();
 			notifyObservers(new TumblrLogger("USER_DEF_LOG", Thread.currentThread().getId(), "INFO", String.format(rb.getString("log.searchEnd"), alreadyRetrieved())));
@@ -234,6 +234,15 @@ public class TalendFlowQueryResultBehaviour extends Observable implements Talend
 	public TalendFlowQueryResultBehaviour before(Long timestamp){
 		options.put("before", timestamp.toString());
 		return this;
+	}
+
+	/**
+	 * Get the before option
+	 * 
+	 * @return the value for the option
+	 */
+	public String getBefore(){
+		return options.get("before");
 	}
 	
 	/**
