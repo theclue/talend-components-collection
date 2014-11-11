@@ -1,0 +1,19 @@
+<%@ jet 
+imports="
+org.talend.core.model.process.INode
+org.talend.designer.codegen.config.CodeGeneratorArgument
+" 
+%>
+<% 
+CodeGeneratorArgument codeGenArgument = (CodeGeneratorArgument) argument;
+INode node = (INode)codeGenArgument.getArgument();
+String cid = node.getUniqueName();
+
+%>
+	} // posts iterating loop
+} // paginating loop
+
+/**
+ * Updates to TOS global map
+ */ 
+globalMap.put("<%=cid %>_NB_LINE", nb_line_<%=cid%>);
