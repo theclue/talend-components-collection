@@ -19,9 +19,9 @@ import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebEvent;
 import javafx.scene.web.WebView;
 
-import javax.swing.*;
+import javafx.concurrent.Worker;
 
-import facebook4j.User.Work;
+import javax.swing.*;
 
 public class ComponentBrowser extends JFrame {
 	 
@@ -44,7 +44,7 @@ public class ComponentBrowser extends JFrame {
         getContentPane().add(panel);
         
         setPreferredSize(new Dimension(320, 200));
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         pack();
 
     }
@@ -73,6 +73,12 @@ public class ComponentBrowser extends JFrame {
 
 							}
                         });
+                    }
+                });
+                
+                engine.getLoadWorker().stateProperty().addListener((obs, oldState, newState) -> {
+                    if (newState == Worker.State.SUCCEEDED) {
+                       System.out.println(engine.getDocument().getTextContent());
                     }
                 });
                 
@@ -136,7 +142,7 @@ public class ComponentBrowser extends JFrame {
             public void run() {
             	ComponentBrowser browser = new ComponentBrowser();
                 browser.setVisible(true);
-                browser.loadURL("http://google.it");
+                browser.loadURL("https://www.facebook.com/connect/login_success.html");
            }    
             
             
