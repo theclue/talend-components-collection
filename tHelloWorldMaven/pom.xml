@@ -25,6 +25,11 @@
 			<id>theclue-releases</id>
 			<url>https://raw.github.com/theclue/theclue-maven-repo/master/releases</url>
 		</repository>
+		<repository>
+                        <id>maven-s3-release-repo</id>
+                        <name>S3 Release Repository</name>
+                        <url>http://extras.gabrielebaldassarre.com/mavenrepo/release</url>
+                </repository>
    </repositories>
     <dependencies>
     <dependency>
@@ -36,7 +41,7 @@
     <dependency>
 			<groupId>org.gabrielebaldassarre</groupId>
 			<artifactId>talend-bridge-api</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>0.2</version>
 		</dependency>
   </dependencies>
   <build>
